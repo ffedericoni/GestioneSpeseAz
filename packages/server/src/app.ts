@@ -3,6 +3,8 @@ import rateLimit from "@fastify/rate-limit";
 import { sessionPlugin } from "./plugins/session.js";
 import { authRoutes } from "./auth/auth.routes.js";
 import { userRoutes } from "./users/users.routes.js";
+import { reportRoutes } from "./reports/reports.routes.js";
+import { itemRoutes } from "./items/items.routes.js";
 
 export interface BuildAppOptions {
   // Max login attempts per IP per minute. Low in production; tests override high.
@@ -24,6 +26,8 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
     async (api) => {
       await api.register(authRoutes, { loginRateMax });
       await api.register(userRoutes, { prefix: "/users" });
+      await api.register(reportRoutes, { prefix: "/reports" });
+      await api.register(itemRoutes, { prefix: "/reports/:reportId/items" });
     },
     { prefix: "/api" },
   );

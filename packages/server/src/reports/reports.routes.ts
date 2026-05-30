@@ -1,8 +1,9 @@
-import type { FastifyInstance } from "fastify";
+import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
-import { hasAtLeast, isEditableState } from "@gsa/shared";
-import { createReportSchema, updateReportSchema } from "./reports.schemas.js";
+import { hasAtLeast, isEditableState, type ReportAction } from "@gsa/shared";
+import { createReportSchema, updateReportSchema, reviseSchema } from "./reports.schemas.js";
+import { performTransition, TransitionError } from "./reports.service.js";
 
 const reportSelect = {
   id: true,
@@ -127,6 +128,62 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
       }
       await prisma.expenseReport.delete({ where: { id: req.params.id } });
       return reply.code(204).send();
+    },
+  );
+
+  // Shared driver for the four state-transition endpoints. Maps the service's
+  // TransitionError codes to HTTP status (403 for authz, 409 for illegal state).
+  async function runTransition(
+    req: FastifyRequest<{ Params: { id: string } }>,
+    reply: FastifyReply,
+    action: ReportAction,
+    comment?: string,
+  ): Promise<unknown> {
+    const me = req.currentUser!;
+    try {
+      const updated = await performTransition(req.params.id, action, me, comment);
+      if (!updated) return reply.code(404).send({ error: "NOTA_SPESE_NON_TROVATA" });
+      return reply.send({
+        id: updated.id,
+        ownerId: updated.ownerId,
+        title: updated.title,
+        state: updated.state,
+        totalCents: updated.totalCents,
+      });
+    } catch (err) {
+      if (err instanceof TransitionError) {
+        const status = err.code === "NON_AUTORIZZATO" ? 403 : 409;
+        return reply.code(status).send({ error: err.code });
+      }
+      throw err;
+    }
+  }
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/submit",
+    { preHandler: app.requireAuth },
+    (req, reply) => runTransition(req, reply, "submit"),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/approve",
+    { preHandler: app.requireAuth },
+    (req, reply) => runTransition(req, reply, "approve"),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/reject",
+    { preHandler: app.requireAuth },
+    (req, reply) => runTransition(req, reply, "reject"),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/revise",
+    { preHandler: app.requireAuth },
+    (req, reply) => {
+      const parsed = reviseSchema.safeParse(req.body);
+      if (!parsed.success) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
+      return runTransition(req, reply, "revise", parsed.data.comment);
     },
   );
 }
