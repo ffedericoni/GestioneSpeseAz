@@ -12,7 +12,8 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
-    "create:admin": "tsx src/scripts/createAdmin.ts"
+    "create:admin": "tsx src/scripts/createAdmin.ts",
+    "seed:dev": "tsx src/scripts/seedDev.ts"
   },
   "dependencies": {
     "@gsa/shared": "*",
