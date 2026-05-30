@@ -7,9 +7,16 @@ export async function buildApp(): Promise<FastifyInstance> {
   const app = Fastify({ logger: false });
 
   await app.register(sessionPlugin);
-  await app.register(authRoutes);
-  await app.register(userRoutes, { prefix: "/users" });
 
+  await app.register(
+    async (api) => {
+      await api.register(authRoutes);
+      await api.register(userRoutes, { prefix: "/users" });
+    },
+    { prefix: "/api" },
+  );
+
+  // Infrastructure health check stays at the root (not part of the JSON API).
   app.get("/health", async () => ({ status: "ok" }));
 
   return app;

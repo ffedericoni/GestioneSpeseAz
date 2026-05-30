@@ -17,13 +17,13 @@ beforeEach(async () => {
 
 async function loginAs(email: string, password: string) {
   const agent = request.agent(app.server);
-  await agent.post("/login").send({ email, password });
+  await agent.post("/api/login").send({ email, password });
   return agent;
 }
 
 describe("users API", () => {
   it("blocks anonymous access with 401", async () => {
-    const res = await request(app.server).get("/users");
+    const res = await request(app.server).get("/api/users");
     expect(res.status).toBe(401);
   });
 
@@ -35,7 +35,7 @@ describe("users API", () => {
       role: "EMPLOYEE",
     });
     const agent = await loginAs("emp@example.com", "password123");
-    const res = await agent.get("/users");
+    const res = await agent.get("/api/users");
     expect(res.status).toBe(403);
     expect(res.body.error).toBe("NON_AUTORIZZATO");
   });
@@ -49,7 +49,7 @@ describe("users API", () => {
     });
     const agent = await loginAs("admin@example.com", "password123");
 
-    const created = await agent.post("/users").send({
+    const created = await agent.post("/api/users").send({
       email: "mario@example.com",
       password: "password123",
       fullName: "Mario Rossi",
@@ -60,12 +60,12 @@ describe("users API", () => {
     expect(created.body).not.toHaveProperty("passwordHash");
     const newId = created.body.id;
 
-    const list = await agent.get("/users");
+    const list = await agent.get("/api/users");
     expect(list.status).toBe(200);
     expect(list.body).toHaveLength(2);
 
     const patched = await agent
-      .patch(`/users/${newId}`)
+      .patch(`/api/users/${newId}`)
       .send({ role: "MANAGER", active: false });
     expect(patched.status).toBe(200);
     expect(patched.body.role).toBe("MANAGER");
@@ -80,7 +80,7 @@ describe("users API", () => {
       role: "ADMIN",
     });
     const agent = await loginAs("admin@example.com", "password123");
-    const res = await agent.post("/users").send({
+    const res = await agent.post("/api/users").send({
       email: "admin@example.com",
       password: "password123",
       fullName: "Dup",
@@ -98,7 +98,7 @@ describe("users API", () => {
       role: "ADMIN",
     });
     const agent = await loginAs("admin@example.com", "password123");
-    const res = await agent.post("/users").send({ email: "not-an-email", password: "x" });
+    const res = await agent.post("/api/users").send({ email: "not-an-email", password: "x" });
     expect(res.status).toBe(400);
   });
 
@@ -110,18 +110,18 @@ describe("users API", () => {
       email: "admin@example.com", password: "password123", fullName: "Anna Admin", role: "ADMIN",
     });
     const agent = await loginAs("admin@example.com", "password123");
-    const created = await agent.post("/users").send({
+    const created = await agent.post("/api/users").send({
       email: "sub@example.com", password: "password123", fullName: "Subordinato", role: "EMPLOYEE", managerId: mgr.id,
     });
     expect(created.body.managerId).toBe(mgr.id);
     const id = created.body.id;
 
     // Omitting managerId preserves it
-    const p1 = await agent.patch(`/users/${id}`).send({ fullName: "Subordinato B" });
+    const p1 = await agent.patch(`/api/users/${id}`).send({ fullName: "Subordinato B" });
     expect(p1.body.managerId).toBe(mgr.id);
 
     // Explicit null clears it
-    const p2 = await agent.patch(`/users/${id}`).send({ managerId: null });
+    const p2 = await agent.patch(`/api/users/${id}`).send({ managerId: null });
     expect(p2.body.managerId).toBeNull();
   });
 });

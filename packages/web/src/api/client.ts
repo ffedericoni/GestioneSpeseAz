@@ -6,8 +6,10 @@ export interface ApiError {
   code?: string;
 }
 
+const API_BASE = "/api";
+
 async function request<T>(method: string, path: string, body?: unknown): Promise<T> {
-  const res = await fetch(path, {
+  const res = await fetch(`${API_BASE}${path}`, {
     method,
     credentials: "include",
     headers: body ? { "Content-Type": "application/json" } : {},
