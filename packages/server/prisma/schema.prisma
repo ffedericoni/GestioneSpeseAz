@@ -22,8 +22,76 @@ model User {
   role         Role     @default(EMPLOYEE)
   managerId    String?
   manager      User?    @relation("Reports", fields: [managerId], references: [id])
-  reports      User[]   @relation("Reports")
-  active       Boolean  @default(true)
+  reports        User[]          @relation("Reports")
+  ownedReports   ExpenseReport[] @relation("OwnedReports")
+  decidedReports ExpenseReport[] @relation("DecidedReports")
+  reportEvents   ReportEvent[]   @relation("ReportEvents")
+  active         Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+}
+
+enum ReportState {
+  CREATED
+  READY_FOR_APPROVAL
+  IN_REVISION
+  APPROVED
+  REJECTED
+  SENT_FOR_PAYMENT
+  PAID
+}
+
+enum Category {
+  MILEAGE
+  MEALS_LODGING
+  TRANSPORT
+  OTHER
+}
+
+model ExpenseReport {
+  id               String        @id @default(cuid())
+  ownerId          String
+  owner            User          @relation("OwnedReports", fields: [ownerId], references: [id])
+  title            String
+  state            ReportState   @default(CREATED)
+  submittedAt      DateTime?
+  decidedAt        DateTime?
+  decidedById      String?
+  decidedBy        User?         @relation("DecidedReports", fields: [decidedById], references: [id])
+  paidAt           DateTime?
+  paymentReference String?
+  totalCents       Int           @default(0)
+  items            ExpenseItem[]
+  events           ReportEvent[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+}
+
+model ExpenseItem {
+  id          String        @id @default(cuid())
+  reportId    String
+  report      ExpenseReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  category    Category
+  date        DateTime
+  description String
+  amountCents Int
+  vatCents    Int?
+  receiptRef  String?
+  notes       String?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  // Mileage-only columns (vehicleId, baselineKm, enteredKm, ratePerKm, ...) are
+  // added in Slice 3 when the MILEAGE category becomes supported.
+}
+
+model ReportEvent {
+  id        String        @id @default(cuid())
+  reportId  String
+  report    ExpenseReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  actorId   String
+  actor     User          @relation("ReportEvents", fields: [actorId], references: [id])
+  fromState ReportState
+  toState   ReportState
+  comment   String?
+  createdAt DateTime      @default(now())
 }
