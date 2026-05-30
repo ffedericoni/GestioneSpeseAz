@@ -22,6 +22,9 @@ cost tables (*costo chilometrico*).
 - **YAGNI:** no features beyond what is described here.
 - **Money is always stored as integer cents** (never floating point).
 - **Currency:** EUR only.
+- **Front-end language: Italian only.** All UI text, labels, buttons,
+  validation messages, emails, and the CSV export headers are in Italian (see
+  §16).
 
 ## 3. Roles
 
@@ -243,7 +246,34 @@ Rule: write the failing test first, watch it fail, then write the minimum code t
 pass. Domain rules get a unit test before implementation; endpoints get an API
 test before the handler.
 
-## 16. Explicitly Out of Scope (for now)
+## 16. Localization & Formatting (Italian)
+
+The web front-end is **entirely in Italian**. This is a hard requirement.
+
+- **All user-facing text** — navigation, labels, buttons, table headers, status
+  names, empty states, validation/error messages, confirmation dialogs — is in
+  Italian. No English strings reach the user.
+- **Centralized strings:** UI copy lives in a single Italian locale resource
+  (e.g. a `it` dictionary via a light i18n setup such as `react-i18next`), not
+  scattered inline. The app ships with Italian only; this structure leaves room
+  to add other languages later without rework, but **no English UI is built
+  now**.
+- **State names** are presented with Italian labels (e.g. `CREATED` →
+  "Bozza"/"Creata", `READY_FOR_APPROVAL` → "Da approvare", `IN_REVISION` → "In
+  revisione", `APPROVED` → "Approvata", `REJECTED` → "Respinta",
+  `SENT_FOR_PAYMENT` → "Inviata al pagamento", `PAID` → "Pagata"). The internal
+  enum values stay in English in code/DB; only the display layer is translated.
+- **Locale formatting (`it-IT`):** dates as `gg/MM/aaaa`, numbers and currency
+  with comma decimal separator and `€` (e.g. `1.234,56 €`), via
+  `Intl.NumberFormat`/`Intl.DateTimeFormat`.
+- **CSV export** uses Italian column headers.
+- Domain terminology uses the Italian business vocabulary (e.g. *nota spese*,
+  *rimborso chilometrico*, *trasferta*).
+
+Backend code, identifiers, enums, logs, and tests remain in English; only the
+presentation layer is Italian.
+
+## 17. Explicitly Out of Scope (for now)
 
 - OCR / receipt image parsing.
 - Multi-tenancy (data isolation, billing, onboarding).
