@@ -1,3 +1,6 @@
+import type { Role } from "@gsa/shared";
+export type { Role };
+
 export interface ApiError {
   status: number;
   code?: string;
@@ -29,8 +32,6 @@ export const api = {
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
 };
-
-export type Role = "EMPLOYEE" | "MANAGER" | "FINANCE" | "ADMIN";
 
 export interface CurrentUser {
   id: string;
