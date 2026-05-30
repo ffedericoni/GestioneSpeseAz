@@ -1,0 +1,18 @@
+# Brainstorming companion artifacts
+.superpowers/
+
+# Node
+node_modules/
+dist/
+build/
+coverage/
+*.log
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
