@@ -11,7 +11,8 @@
     "test:watch": "vitest",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
-    "prisma:reset": "prisma migrate reset --force"
+    "prisma:reset": "prisma migrate reset --force",
+    "create:admin": "tsx src/scripts/createAdmin.ts"
   },
   "dependencies": {
     "@fastify/cookie": "^9.3.1",
