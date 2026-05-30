@@ -65,6 +65,7 @@ model ExpenseReport {
   events           ReportEvent[]
   createdAt        DateTime      @default(now())
   updatedAt        DateTime      @updatedAt
+  @@index([ownerId])
 }
 
 model ExpenseItem {
@@ -82,6 +83,7 @@ model ExpenseItem {
   updatedAt   DateTime      @updatedAt
   // Mileage-only columns (vehicleId, baselineKm, enteredKm, ratePerKm, ...) are
   // added in Slice 3 when the MILEAGE category becomes supported.
+  @@index([reportId])
 }
 
 model ReportEvent {
@@ -94,4 +96,5 @@ model ReportEvent {
   toState   ReportState
   comment   String?
   createdAt DateTime      @default(now())
+  @@index([reportId])
 }
