@@ -70,4 +70,24 @@ describe("auth", () => {
       .send({ email: "ex@example.com", password: "password123" });
     expect(res.status).toBe(401);
   });
+
+  it("rate-limits repeated login attempts with 429", async () => {
+    const { buildApp } = await import("../src/app.js");
+    const limited = await buildApp({ loginRateMax: 3 });
+    await limited.ready();
+    try {
+      const attempt = () =>
+        request(limited.server)
+          .post("/api/login")
+          .send({ email: "admin@example.com", password: "wrong" });
+      // First 3 are allowed (401 wrong creds); the 4th is blocked (429).
+      await attempt();
+      await attempt();
+      await attempt();
+      const fourth = await attempt();
+      expect(fourth.status).toBe(429);
+    } finally {
+      await limited.close();
+    }
+  });
 });

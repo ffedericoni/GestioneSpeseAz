@@ -1,10 +1,14 @@
 import { beforeAll } from "vitest";
 import type { FastifyInstance } from "fastify";
+import type { ReportState, Category } from "@gsa/shared";
 
 // Point Prisma at the dedicated test database BEFORE the db module is imported.
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 process.env.SESSION_SECRET =
   process.env.SESSION_SECRET ?? "test-only-secret-please-change-me-32chars";
+// Keep the login rate limiter effectively disabled for the suite; a dedicated
+// test builds its own app with a low limit to verify 429 behaviour.
+process.env.LOGIN_RATE_MAX = process.env.LOGIN_RATE_MAX ?? "100000";
 
 const { prisma } = await import("../src/db.js");
 const { buildApp } = await import("../src/app.js");
@@ -19,6 +23,10 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 }
 
 export async function resetDb(): Promise<void> {
+  // Children before parents to satisfy foreign keys.
+  await prisma.reportEvent.deleteMany({});
+  await prisma.expenseItem.deleteMany({});
+  await prisma.expenseReport.deleteMany({});
   await prisma.user.deleteMany({});
 }
 
@@ -59,3 +67,36 @@ beforeAll(async () => {
     );
   }
 });
+
+export async function seedReport(opts: {
+  ownerId: string;
+  title?: string;
+  state?: ReportState;
+}): Promise<{ id: string }> {
+  const report = await prisma.expenseReport.create({
+    data: {
+      ownerId: opts.ownerId,
+      title: opts.title ?? "Trasferta",
+      state: opts.state ?? "CREATED",
+    },
+  });
+  return { id: report.id };
+}
+
+export async function seedItem(opts: {
+  reportId: string;
+  category?: Category;
+  description?: string;
+  amountCents?: number;
+}): Promise<{ id: string }> {
+  const item = await prisma.expenseItem.create({
+    data: {
+      reportId: opts.reportId,
+      category: opts.category ?? "TRANSPORT",
+      date: new Date("2026-05-20T00:00:00.000Z"),
+      description: opts.description ?? "Treno",
+      amountCents: opts.amountCents ?? 2500,
+    },
+  });
+  return { id: item.id };
+}
