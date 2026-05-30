@@ -40,4 +40,4 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
 ## Funzionalità (Slice 1)
 - Autenticazione email + password con sessione (cookie cifrato).
 - Ruoli: Dipendente, Responsabile, Amministrazione, Amministratore.
-- Gestione utenti (solo Amministratore): creazione, elenco, modifica ruolo/responsabile, attivazione/disattivazione.
+- Gestione utenti (solo Amministratore): creazione (con ruolo e responsabile), elenco, attivazione/disattivazione. La modifica di ruolo/responsabile di un utente esistente è supportata dall'API (`PATCH /users/:id`) ma non ancora dall'interfaccia web.
