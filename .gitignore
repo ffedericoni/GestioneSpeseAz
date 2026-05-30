@@ -7,9 +7,14 @@ dist/
 build/
 coverage/
 *.log
+*.tsbuildinfo
 .env
 .env.*
 !.env.example
+
+# Playwright
+test-results/
+playwright-report/
 
 # OS / editor
 .DS_Store
