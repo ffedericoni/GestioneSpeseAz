@@ -33,7 +33,8 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
   (la prima volta installa il browser: `npx playwright install chromium` dalla cartella `packages/web`)
 
 ## Struttura
-- `packages/server` — API Node + Fastify + Prisma (PostgreSQL). Logica di dominio pura in `src/core/`.
+- `packages/shared` — `@gsa/shared`: dominio puro condiviso da server e web (ruoli, stati, categorie e la macchina a stati delle note spese). È l'unica fonte di verità per le transizioni. Viene compilato automaticamente da `npm install` (script `prepare`), quindi non richiede passaggi manuali.
+- `packages/server` — API Node + Fastify + Prisma (PostgreSQL). Tutte le rotte applicative sono sotto `/api/*`. Logica di dominio pura in `src/core/` e in `@gsa/shared`.
 - `packages/web` — applicazione React + Vite (interfaccia in italiano).
 - `docs/superpowers/` — specifiche di design e piani di implementazione.
 
@@ -41,3 +42,24 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
 - Autenticazione email + password con sessione (cookie cifrato).
 - Ruoli: Dipendente, Responsabile, Amministrazione, Amministratore.
 - Gestione utenti (solo Amministratore): creazione (con ruolo e responsabile), elenco, attivazione/disattivazione. La modifica di ruolo/responsabile di un utente esistente è supportata dall'API (`PATCH /users/:id`) ma non ancora dall'interfaccia web.
+
+## Funzionalità (Slice 2)
+- **Note spese e macchina a stati.** Un dipendente crea una nota spese, vi aggiunge le voci di spesa e la invia per approvazione; il responsabile la **approva**, la **respinge** oppure ne **richiede la revisione** (con motivazione). Stati: Bozza → Da approvare → In revisione / Approvata / Respinta (i passaggi al pagamento sono definiti ma non ancora esposti — vedi sotto).
+- **Categorie supportate in questa slice:** Vitto e alloggio, Trasporti, Altro. Ogni voce ha importo in centesimi interi e IVA opzionale.
+- **API sotto `/api/*`.** Tutte le rotte applicative (login, utenti, note spese) sono ora servite sotto il prefisso `/api`, eliminando la collisione tra il proxy di Vite e le rotte SPA.
+- **Sicurezza login:** confronto password a tempo costante anche per email inesistenti (hash fittizio) e rate limit sui tentativi di accesso.
+- **Coda approvazioni** per il responsabile: elenca solo le note spese dei propri collaboratori in attesa di approvazione (Amministrazione/Amministratore vedono tutte).
+- **Macchina a stati condivisa:** server (che applica le regole) e web (che mostra i pulsanti disponibili) derivano entrambi dalle stesse transizioni in `@gsa/shared`; nessuna regola è duplicata.
+- **Permessi e modifica:** l'autorizzazione è sempre applicata lato server su ogni rotta; il dipendente può modificare la nota e le voci finché non è stata approvata o respinta.
+
+### Dati di esempio per lo sviluppo
+`npm run seed:dev --workspace packages/server` crea (in modo idempotente) tre utenti di prova, tutti con password `password123`:
+- `admin@azienda.it` (Amministratore)
+- `responsabile@azienda.it` (Responsabile)
+- `dipendente@azienda.it` (Dipendente, collaboratore del responsabile)
+
+Sono usati anche dal test end-to-end.
+
+### Non ancora implementato
+- **Rimborso chilometrico (MILEAGE):** modellato a livello di dominio ma rifiutato dall'API (errore `DATI_NON_VALIDI`) — arriverà nella Slice 3 con le tabelle ACI e i veicoli.
+- **Pagamento ed esportazione:** le transizioni "Inviata al pagamento" e "Pagata" sono definite nella macchina a stati ma non ancora esposte come endpoint; l'esportazione CSV è prevista per la Slice 4.
