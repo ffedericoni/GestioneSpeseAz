@@ -15,6 +15,8 @@ test("admin logs in and sees the Italian user-management page", async ({ page })
   await page.getByLabel("Password").fill("password123");
   await page.getByRole("button", { name: "Accedi" }).click();
 
-  await expect(page.getByRole("heading", { name: "Gestione utenti" })).toBeVisible();
+  // The default authenticated route is now the reports list. Admin reaches
+  // user management via the nav link ("Utenti"); after login they land here.
+  await expect(page.getByRole("heading", { name: "Le mie note spese" })).toBeVisible();
   await expect(page.getByRole("button", { name: "Esci" })).toBeVisible();
 });

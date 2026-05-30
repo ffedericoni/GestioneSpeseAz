@@ -128,7 +128,13 @@ export function ReportDetailPage(): JSX.Element {
               <option key={c} value={c}>{t(`categories.${c}`)}</option>
             ))}
           </select>
-          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} required />
+          <input
+            type="date"
+            aria-label={t("items.date")}
+            value={date}
+            onChange={(e) => setDate(e.target.value)}
+            required
+          />
           <input
             placeholder={t("items.description")}
             value={description}
