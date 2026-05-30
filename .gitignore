@@ -12,6 +12,10 @@ coverage/
 .env.*
 !.env.example
 
+# Playwright
+test-results/
+playwright-report/
+
 # OS / editor
 .DS_Store
 Thumbs.db
