@@ -1,19 +1,10 @@
-import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
+import type { FastifyInstance, FastifyReply } from "fastify";
 import { prisma } from "../db.js";
-import { hasAtLeast, REPORT_STATES, type ReportState } from "@gsa/shared";
+import { REPORT_STATES, type ReportState } from "@gsa/shared";
 import { buildReportCsv, buildItemCsv } from "./csv.js";
 
 // Default export set when no ?state filter is given: everything payment-relevant.
 const EXPORTABLE_STATES: ReportState[] = ["APPROVED", "SENT_FOR_PAYMENT", "PAID"];
-
-function requireFinance(req: FastifyRequest, reply: FastifyReply): boolean {
-  const me = req.currentUser!;
-  if (!hasAtLeast(me.role, "FINANCE")) {
-    reply.code(403).send({ error: "NON_AUTORIZZATO" });
-    return false;
-  }
-  return true;
-}
 
 // Resolve the optional ?state filter. Returns null (after sending 400) if invalid.
 function resolveStates(stateParam: string | undefined, reply: FastifyReply): ReportState[] | null {
@@ -35,9 +26,8 @@ function sendCsv(reply: FastifyReply, filePrefix: string, csv: string): FastifyR
 export async function paymentRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Querystring: { state?: string } }>(
     "/export/reports.csv",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("FINANCE") },
     async (req, reply) => {
-      if (!requireFinance(req, reply)) return;
       const states = resolveStates(req.query.state, reply);
       if (!states) return;
       const reports = await prisma.expenseReport.findMany({
@@ -74,9 +64,8 @@ export async function paymentRoutes(app: FastifyInstance): Promise<void> {
 
   app.get<{ Querystring: { state?: string } }>(
     "/export/items.csv",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("FINANCE") },
     async (req, reply) => {
-      if (!requireFinance(req, reply)) return;
       const states = resolveStates(req.query.state, reply);
       if (!states) return;
       const items = await prisma.expenseItem.findMany({
