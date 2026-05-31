@@ -179,3 +179,24 @@ export interface NewMileageItemInput extends MileageQuoteInput {
 export function quoteMileage(input: MileageQuoteInput): Promise<MileageQuote> {
   return api.post<MileageQuote>("/items/mileage/quote", input);
 }
+
+export function sendPayment(id: string): Promise<void> {
+  return api.post<void>(`/reports/${id}/send-payment`);
+}
+
+export interface MarkPaidInput {
+  paidAt?: string;
+  paymentReference?: string;
+}
+
+export function markPaid(id: string, input: MarkPaidInput): Promise<void> {
+  return api.post<void>(`/reports/${id}/mark-paid`, input);
+}
+
+// Direct URL for an <a href download> so the session cookie is sent by the
+// browser (no fetch/blob plumbing). `state` is optional; omit for the default
+// payable set (APPROVED, SENT_FOR_PAYMENT, PAID).
+export function exportCsvUrl(level: "reports" | "items", state?: ReportState): string {
+  const query = state ? `?state=${encodeURIComponent(state)}` : "";
+  return `/api/reports/export/${level}.csv${query}`;
+}
