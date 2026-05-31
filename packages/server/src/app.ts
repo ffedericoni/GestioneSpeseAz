@@ -7,6 +7,7 @@ import { userRoutes } from "./users/users.routes.js";
 import { reportRoutes } from "./reports/reports.routes.js";
 import { itemRoutes } from "./items/items.routes.js";
 import { aciRoutes } from "./aci/aci.routes.js";
+import { vehicleRoutes } from "./vehicles/vehicles.routes.js";
 
 export interface BuildAppOptions {
   // Max login attempts per IP per minute. Low in production; tests override high.
@@ -34,6 +35,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
       await api.register(reportRoutes, { prefix: "/reports" });
       await api.register(itemRoutes, { prefix: "/reports/:reportId/items" });
       await api.register(aciRoutes, { prefix: "/aci" });
+      await api.register(vehicleRoutes, { prefix: "/vehicles" });
     },
     { prefix: "/api" },
   );
