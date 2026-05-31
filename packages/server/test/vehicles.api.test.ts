@@ -45,6 +45,22 @@ describe("vehicles", () => {
 
     const u1list = await a1.get("/api/vehicles");
     expect(u1list.body).toHaveLength(1);
+    // The Decimal rate is serialized as a string on the list path too.
+    expect(u1list.body[0].aciRate.costPerKm).toBe("0.6543");
+  });
+
+  it("clears the plate when PATCHed with null", async () => {
+    const admin = await seedUser({ email: "a@x.it", password: "password123", fullName: "A", role: "ADMIN" });
+    await seedUser({ email: "u1@x.it", password: "password123", fullName: "U1", role: "EMPLOYEE" });
+    const rate = await seedAciRate({ importedById: admin.id });
+
+    const a1 = await loginAs("u1@x.it", "password123");
+    const created = await a1.post("/api/vehicles").send({ label: "Mia", aciRateId: rate.id, plate: "AB123CD" });
+    expect(created.body.plate).toBe("AB123CD");
+
+    const cleared = await a1.patch(`/api/vehicles/${created.body.id}`).send({ plate: null });
+    expect(cleared.status).toBe(200);
+    expect(cleared.body.plate).toBeNull();
   });
 
   it("rejects an unknown aciRateId with 400 TARIFFA_ACI_NON_TROVATA", async () => {
