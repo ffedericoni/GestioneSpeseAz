@@ -57,6 +57,7 @@ export async function performTransition(
   action: ReportAction,
   actor: Actor,
   comment?: string,
+  payment?: { paidAt: Date; paymentReference: string | null },
 ) {
   const report = await prisma.expenseReport.findUnique({
     where: { id: reportId },
@@ -89,6 +90,9 @@ export async function performTransition(
           state: def.to,
           ...(action === "submit" ? { submittedAt: new Date() } : {}),
           ...(isDecision ? { decidedAt: new Date(), decidedById: actor.id } : {}),
+          ...(action === "mark-paid" && payment
+            ? { paidAt: payment.paidAt, paymentReference: payment.paymentReference }
+            : {}),
         },
       });
       await tx.reportEvent.create({
