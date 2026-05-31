@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { api, type AciRate, type AciImportBatch } from "../api/client.js";
+import { api, type AciRate, type AciImportBatch, type ApiError } from "../api/client.js";
 import { formatDateIt } from "../format.js";
 
 interface ImportRowError {
@@ -42,9 +42,9 @@ export function AciRatesPage(): JSX.Element {
     } catch (err) {
       // The upload helper attaches the full parsed body as `body`; the import
       // endpoint returns { error, righe } on a 400.
-      const apiErr = err as { body?: { righe?: ImportRowError[] } };
+      const righe = (err as ApiError).body?.righe;
       setError(t("aci.importError"));
-      if (Array.isArray(apiErr.body?.righe)) setRowErrors(apiErr.body!.righe);
+      if (Array.isArray(righe)) setRowErrors(righe as ImportRowError[]);
     }
   }
 

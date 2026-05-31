@@ -11,7 +11,8 @@ export function SettingsPage(): JSX.Element {
   useEffect(() => {
     void api
       .get<ToleranceSetting>("/settings/mileage-tolerance")
-      .then((s) => setTolerance(String(s.tolerancePercent)));
+      .then((s) => setTolerance(String(s.tolerancePercent)))
+      .catch(() => setError(t("settings.loadError")));
   }, []);
 
   async function onSave(e: FormEvent): Promise<void> {

@@ -37,6 +37,9 @@ export function VehiclesPage(): JSX.Element {
       await api.post("/vehicles", { label, aciRateId, plate: plate || null });
       setLabel("");
       setPlate("");
+      setSearch("");
+      setRates([]);
+      setAciRateId("");
       await refresh();
     } catch {
       setError(t("vehicles.createError"));
@@ -91,7 +94,7 @@ export function VehiclesPage(): JSX.Element {
               <th style={{ textAlign: "left" }}>{t("vehicles.label")}</th>
               <th style={{ textAlign: "left" }}>{t("vehicles.plate")}</th>
               <th style={{ textAlign: "left" }}>{t("vehicles.rate")}</th>
-              <th style={{ textAlign: "left" }}>{t("users.role")}</th>
+              <th style={{ textAlign: "left" }}>{t("vehicles.status.header")}</th>
               <th></th>
             </tr>
           </thead>

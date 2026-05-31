@@ -72,7 +72,7 @@ export const it = {
       rate: "Tariffa ACI",
       rateSearch: "Cerca tariffa ACI (marca/modello)",
       search: "Cerca",
-      status: { active: "Attivo", inactive: "Disattivato" },
+      status: { header: "Stato", active: "Attivo", inactive: "Disattivato" },
       deactivate: "Disattiva",
       activate: "Riattiva",
       empty: "Nessun veicolo registrato.",
@@ -107,6 +107,7 @@ export const it = {
       save: "Salva",
       saved: "Impostazioni salvate.",
       saveError: "Impossibile salvare le impostazioni.",
+      loadError: "Impossibile caricare le impostazioni.",
     },
     login: {
       heading: "Accedi",
