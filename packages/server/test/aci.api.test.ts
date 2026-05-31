@@ -108,3 +108,28 @@ describe("ACI import", () => {
     expect(res.body.error).toBe("DATI_NON_VALIDI");
   });
 });
+
+describe("ACI rate search", () => {
+  it("filters by search term and by year, and requires auth", async () => {
+    await seedAdminAndEmployee();
+    const admin = await loginAs("admin@example.com", "password123");
+    await admin.post("/api/aci/import").attach("file", Buffer.from(GOOD_CSV), "rates.csv");
+
+    const anon = await request(app.server).get("/api/aci/rates");
+    expect(anon.status).toBe(401);
+
+    const emp = await loginAs("emp@example.com", "password123");
+
+    const byModel = await emp.get("/api/aci/rates?search=Panda");
+    expect(byModel.status).toBe(200);
+    expect(byModel.body).toHaveLength(1);
+    expect(byModel.body[0].model).toBe("Panda");
+    expect(byModel.body[0].costPerKm).toBe("0.6543"); // serialized as string
+
+    const byYear = await emp.get("/api/aci/rates?year=2025");
+    expect(byYear.body).toHaveLength(0);
+
+    const all = await emp.get("/api/aci/rates");
+    expect(all.body).toHaveLength(2);
+  });
+});
