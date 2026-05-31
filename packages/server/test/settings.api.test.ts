@@ -55,4 +55,25 @@ describe("mileage tolerance setting", () => {
     expect(res.status).toBe(400);
     expect(res.body.error).toBe("DATI_NON_VALIDI");
   });
+
+  it("rejects a non-integer value (400)", async () => {
+    await seedUser({ email: "a@x.it", password: "password123", fullName: "A", role: "ADMIN" });
+    const admin = await loginAs("a@x.it", "password123");
+    const res = await admin.put("/api/settings/mileage-tolerance").send({ tolerancePercent: 12.5 });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("DATI_NON_VALIDI");
+  });
+
+  it("accepts the boundary value 0", async () => {
+    await seedUser({ email: "a@x.it", password: "password123", fullName: "A", role: "ADMIN" });
+    const admin = await loginAs("a@x.it", "password123");
+    const put = await admin.put("/api/settings/mileage-tolerance").send({ tolerancePercent: 0 });
+    expect(put.status).toBe(200);
+    expect(put.body.tolerancePercent).toBe(0);
+  });
+
+  it("requires authentication to read the setting (401)", async () => {
+    const res = await request(app.server).get("/api/settings/mileage-tolerance");
+    expect(res.status).toBe(401);
+  });
 });
