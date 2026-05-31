@@ -16,12 +16,14 @@
     "seed:dev": "tsx src/scripts/seedDev.ts"
   },
   "dependencies": {
-    "@gsa/shared": "*",
     "@fastify/cookie": "^9.3.1",
+    "@fastify/multipart": "^8.3.1",
     "@fastify/rate-limit": "^9.1.0",
     "@fastify/secure-session": "^7.5.1",
+    "@gsa/shared": "*",
     "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",
+    "csv-parse": "^5.6.0",
     "fastify": "^4.28.1",
     "fastify-plugin": "^4.5.1",
     "zod": "^3.23.8"

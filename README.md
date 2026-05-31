@@ -63,3 +63,31 @@ Sono usati anche dal test end-to-end.
 ### Non ancora implementato
 - **Rimborso chilometrico (MILEAGE):** modellato a livello di dominio ma rifiutato dall'API (errore `DATI_NON_VALIDI`) — arriverà nella Slice 3 con le tabelle ACI e i veicoli.
 - **Pagamento ed esportazione:** le transizioni "Inviata al pagamento" e "Pagata" sono definite nella macchina a stati ma non ancora esposte come endpoint; l'esportazione CSV è prevista per la Slice 4.
+
+## Funzionalità (Slice 3a — fondamenta rimborso chilometrico)
+
+- **Tabelle ACI (Admin):** importazione delle tariffe €/km da file CSV normalizzato
+  (intestazione `year,make,model,fuel,variant,costPerKm`, separatore decimale `.`).
+  L'import è atomico: se una riga è errata, nulla viene salvato e vengono mostrati
+  gli errori riga per riga. Re-importare lo stesso anno aggiorna le righe esistenti
+  (upsert) preservando i collegamenti dei veicoli.
+- **Veicoli (Dipendente):** registrazione dei propri veicoli, ciascuno collegato a
+  una tariffa ACI scelta tramite ricerca per marca/modello; attivazione/disattivazione.
+- **Impostazioni (Admin):** tolleranza chilometrica configurabile (default 10%).
+
+### Note per lo sviluppo
+
+- Utenti di prova (`npm run seed:dev --workspace packages/server`): `admin@azienda.it`,
+  `responsabile@azienda.it`, `dipendente@azienda.it` (password `password123`).
+- Esempio CSV ACI:
+  ```csv
+  year,make,model,fuel,variant,costPerKm
+  2026,Fiat,Panda,Benzina,1.2,0.6543
+  ```
+
+### Non ancora implementato (Slice 3b)
+
+- Voci di tipo `MILEAGE` nelle note spese (calcolo km × tariffa, baseline manuale,
+  tolleranza e giustificazione, andata/ritorno), il port `DistanceProvider` e
+  l'endpoint di preventivo. Finché non arriva la Slice 3b, l'API rifiuta le voci
+  `MILEAGE` con `DATI_NON_VALIDI`.

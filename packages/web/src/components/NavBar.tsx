@@ -20,7 +20,10 @@ export function NavBar(): JSX.Element | null {
       }}
     >
       <Link to="/note-spese">{t("nav.reports")}</Link>
+      <Link to="/veicoli">{t("nav.vehicles")}</Link>
       {hasAtLeast(user.role, "MANAGER") && <Link to="/approvazioni">{t("nav.approvals")}</Link>}
+      {user.role === "ADMIN" && <Link to="/tabelle-aci">{t("nav.aci")}</Link>}
+      {user.role === "ADMIN" && <Link to="/impostazioni">{t("nav.settings")}</Link>}
       {user.role === "ADMIN" && <Link to="/utenti">{t("nav.users")}</Link>}
       <span style={{ marginLeft: "auto" }}>{user.fullName}</span>
       <button onClick={() => void logout()}>{t("nav.logout")}</button>

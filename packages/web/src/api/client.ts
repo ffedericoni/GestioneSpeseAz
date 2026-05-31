@@ -4,6 +4,7 @@ export type { Role, ReportState, Category, MoneyCategory };
 export interface ApiError {
   status: number;
   code?: string;
+  body?: Record<string, unknown>;
 }
 
 const API_BASE = "/api";
@@ -29,11 +30,35 @@ async function request<T>(method: string, path: string, body?: unknown): Promise
   return (await res.json()) as T;
 }
 
+async function upload<T>(path: string, formData: FormData): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    credentials: "include",
+    body: formData, // browser sets the multipart boundary; do NOT set Content-Type
+  });
+  if (!res.ok) {
+    let body: Record<string, unknown> | undefined;
+    try {
+      body = await res.json();
+    } catch {
+      body = undefined;
+    }
+    // Surface the whole parsed body (e.g. { error, righe }) so callers can show
+    // row-level import errors, not just the code.
+    const err: ApiError = { status: res.status, code: body?.error as string | undefined, body };
+    throw err;
+  }
+  if (res.status === 204) return undefined as T;
+  return (await res.json()) as T;
+}
+
 export const api = {
   get: <T>(path: string) => request<T>("GET", path),
   post: <T>(path: string, body?: unknown) => request<T>("POST", path, body),
   patch: <T>(path: string, body?: unknown) => request<T>("PATCH", path, body),
+  put: <T>(path: string, body?: unknown) => request<T>("PUT", path, body),
   del: <T>(path: string) => request<T>("DELETE", path),
+  upload,
 };
 
 export interface CurrentUser {
@@ -84,4 +109,35 @@ export interface NewItemInput {
   amountCents: number;
   vatCents?: number | null;
   notes?: string | null;
+}
+
+export interface AciRate {
+  id: string;
+  year: number;
+  make: string;
+  model: string;
+  fuel: string;
+  variant: string;
+  costPerKm: string; // decimal serialized as string
+}
+
+export interface Vehicle {
+  id: string;
+  label: string;
+  plate: string | null;
+  active: boolean;
+  aciRateId: string;
+  aciRate: AciRate;
+}
+
+export interface AciImportBatch {
+  id: string;
+  year: number;
+  fileName: string;
+  rowCount: number;
+  importedAt: string;
+}
+
+export interface ToleranceSetting {
+  tolerancePercent: number;
 }

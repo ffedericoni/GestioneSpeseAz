@@ -7,6 +7,9 @@ import { UsersPage } from "./pages/UsersPage.js";
 import { ReportsPage } from "./pages/ReportsPage.js";
 import { ReportDetailPage } from "./pages/ReportDetailPage.js";
 import { ApprovalsPage } from "./pages/ApprovalsPage.js";
+import { VehiclesPage } from "./pages/VehiclesPage.js";
+import { AciRatesPage } from "./pages/AciRatesPage.js";
+import { SettingsPage } from "./pages/SettingsPage.js";
 
 function Routed(): JSX.Element {
   const { user, loading } = useAuth();
@@ -32,6 +35,9 @@ function Routed(): JSX.Element {
         <Route path="/note-spese/:id" element={<ReportDetailPage />} />
         <Route path="/approvazioni" element={<ApprovalsPage />} />
         <Route path="/utenti" element={<UsersPage />} />
+        <Route path="/veicoli" element={<VehiclesPage />} />
+        <Route path="/tabelle-aci" element={<AciRatesPage />} />
+        <Route path="/impostazioni" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/note-spese" replace />} />
       </Routes>
     </>
