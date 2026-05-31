@@ -12,10 +12,13 @@
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev",
     "prisma:reset": "prisma migrate reset --force",
-    "create:admin": "tsx src/scripts/createAdmin.ts"
+    "create:admin": "tsx src/scripts/createAdmin.ts",
+    "seed:dev": "tsx src/scripts/seedDev.ts"
   },
   "dependencies": {
+    "@gsa/shared": "*",
     "@fastify/cookie": "^9.3.1",
+    "@fastify/rate-limit": "^9.1.0",
     "@fastify/secure-session": "^7.5.1",
     "@prisma/client": "^5.18.0",
     "bcryptjs": "^2.4.3",

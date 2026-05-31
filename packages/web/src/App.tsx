@@ -1,21 +1,40 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AuthProvider, useAuth } from "./auth/AuthContext.js";
+import { NavBar } from "./components/NavBar.js";
 import { LoginPage } from "./pages/LoginPage.js";
 import { UsersPage } from "./pages/UsersPage.js";
+import { ReportsPage } from "./pages/ReportsPage.js";
+import { ReportDetailPage } from "./pages/ReportDetailPage.js";
+import { ApprovalsPage } from "./pages/ApprovalsPage.js";
 
 function Routed(): JSX.Element {
   const { user, loading } = useAuth();
   const { t } = useTranslation();
 
-  if (loading) return <p style={{ fontFamily: "system-ui", margin: "2rem" }}>{t("common.loading")}</p>;
+  if (loading) {
+    return <p style={{ fontFamily: "system-ui", margin: "2rem" }}>{t("common.loading")}</p>;
+  }
+  if (!user) {
+    return (
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="*" element={<Navigate to="/login" replace />} />
+      </Routes>
+    );
+  }
 
   return (
-    <Routes>
-      <Route path="/login" element={user ? <Navigate to="/utenti" replace /> : <LoginPage />} />
-      <Route path="/utenti" element={user ? <UsersPage /> : <Navigate to="/login" replace />} />
-      <Route path="*" element={<Navigate to={user ? "/utenti" : "/login"} replace />} />
-    </Routes>
+    <>
+      <NavBar />
+      <Routes>
+        <Route path="/note-spese" element={<ReportsPage />} />
+        <Route path="/note-spese/:id" element={<ReportDetailPage />} />
+        <Route path="/approvazioni" element={<ApprovalsPage />} />
+        <Route path="/utenti" element={<UsersPage />} />
+        <Route path="*" element={<Navigate to="/note-spese" replace />} />
+      </Routes>
+    </>
   );
 }
 
