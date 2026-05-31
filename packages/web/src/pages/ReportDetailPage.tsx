@@ -109,7 +109,7 @@ export function ReportDetailPage(): JSX.Element {
           roundTrip,
           manualKm: Math.round(Number(estimatedKm)),
           enteredKm: Math.round(Number(enteredKm)),
-          overageJustification: overBound ? justification : undefined,
+          overageJustification: overBound ? justification.trim() : undefined,
         });
       } else {
         await api.post(`/reports/${report!.id}/items`, {
@@ -298,7 +298,7 @@ export function ReportDetailPage(): JSX.Element {
                     required
                   />
                 )}
-                <button type="submit" disabled={!quote}>{t("items.add")}</button>
+                <button type="submit" disabled={!quote || (overBound && justification.trim() === "")}>{t("items.add")}</button>
               </>
             )
           ) : (
