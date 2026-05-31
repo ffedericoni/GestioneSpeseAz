@@ -132,3 +132,21 @@ export async function seedAciRate(opts: {
   });
   return { id: rate.id };
 }
+
+// Seeds a vehicle owned by `userId`, linked to `aciRateId`.
+export async function seedVehicle(opts: {
+  userId: string;
+  aciRateId: string;
+  label?: string;
+  active?: boolean;
+}): Promise<{ id: string }> {
+  const vehicle = await prisma.vehicle.create({
+    data: {
+      userId: opts.userId,
+      aciRateId: opts.aciRateId,
+      label: opts.label ?? "Auto personale",
+      active: opts.active ?? true,
+    },
+  });
+  return { id: vehicle.id };
+}

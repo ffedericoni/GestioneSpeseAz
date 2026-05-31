@@ -83,9 +83,20 @@ model ExpenseItem {
   notes       String?
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
-  // Mileage-only columns (vehicleId, baselineKm, enteredKm, ratePerKm, ...) are
-  // added in Slice 3 when the MILEAGE category becomes supported.
+  // Mileage-only (snapshotted at entry; null for money categories):
+  vehicleId            String?
+  vehicle              Vehicle? @relation(fields: [vehicleId], references: [id])
+  originAddress        String?
+  destinationAddress   String?
+  roundTrip            Boolean  @default(false)
+  baselineKm           Int?
+  tolerancePercent     Int?
+  enteredKm            Int?
+  ratePerKm            Decimal? @db.Decimal(8, 4)
+  overageJustification String?
+  routeProvider        String?
   @@index([reportId])
+  @@index([vehicleId])
 }
 
 model ReportEvent {
@@ -140,6 +151,7 @@ model Vehicle {
   aciRate   AciRate  @relation(fields: [aciRateId], references: [id])
   plate     String?
   active    Boolean  @default(true)
+  items     ExpenseItem[]
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   @@index([userId])
