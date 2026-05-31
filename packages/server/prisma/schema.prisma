@@ -25,7 +25,9 @@ model User {
   reports        User[]          @relation("Reports")
   ownedReports   ExpenseReport[] @relation("OwnedReports")
   decidedReports ExpenseReport[] @relation("DecidedReports")
-  reportEvents   ReportEvent[]   @relation("ReportEvents")
+  reportEvents     ReportEvent[]   @relation("ReportEvents")
+  vehicles         Vehicle[]
+  aciImportBatches AciImportBatch[]
   active         Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
@@ -97,4 +99,53 @@ model ReportEvent {
   comment   String?
   createdAt DateTime      @default(now())
   @@index([reportId])
+}
+
+model AciImportBatch {
+  id           String    @id @default(cuid())
+  year         Int
+  fileName     String
+  rowCount     Int
+  importedById String
+  importedBy   User      @relation(fields: [importedById], references: [id])
+  importedAt   DateTime  @default(now())
+  rates        AciRate[]
+  @@index([importedById])
+}
+
+model AciRate {
+  id            String         @id @default(cuid())
+  year          Int
+  make          String
+  model         String
+  fuel          String
+  variant       String
+  costPerKm     Decimal        @db.Decimal(8, 4)
+  importBatchId String
+  importBatch   AciImportBatch @relation(fields: [importBatchId], references: [id])
+  vehicles      Vehicle[]
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  @@unique([year, make, model, fuel, variant])
+  @@index([year])
+}
+
+model Vehicle {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  label     String
+  aciRateId String
+  aciRate   AciRate  @relation(fields: [aciRateId], references: [id])
+  plate     String?
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  @@index([userId])
+}
+
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

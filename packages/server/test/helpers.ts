@@ -27,6 +27,10 @@ export async function resetDb(): Promise<void> {
   await prisma.reportEvent.deleteMany({});
   await prisma.expenseItem.deleteMany({});
   await prisma.expenseReport.deleteMany({});
+  await prisma.vehicle.deleteMany({});
+  await prisma.aciRate.deleteMany({});
+  await prisma.aciImportBatch.deleteMany({});
+  await prisma.setting.deleteMany({});
   await prisma.user.deleteMany({});
 }
 
@@ -99,4 +103,32 @@ export async function seedItem(opts: {
     },
   });
   return { id: item.id };
+}
+
+// Seeds an ACI rate (with its required import batch) for vehicle/import tests.
+export async function seedAciRate(opts: {
+  importedById: string;
+  year?: number;
+  make?: string;
+  model?: string;
+  fuel?: string;
+  variant?: string;
+  costPerKm?: string;
+}): Promise<{ id: string }> {
+  const year = opts.year ?? 2026;
+  const batch = await prisma.aciImportBatch.create({
+    data: { year, fileName: "seed.csv", rowCount: 1, importedById: opts.importedById },
+  });
+  const rate = await prisma.aciRate.create({
+    data: {
+      year,
+      make: opts.make ?? "Fiat",
+      model: opts.model ?? "Panda",
+      fuel: opts.fuel ?? "Benzina",
+      variant: opts.variant ?? "1.2",
+      costPerKm: opts.costPerKm ?? "0.6543",
+      importBatchId: batch.id,
+    },
+  });
+  return { id: rate.id };
 }
