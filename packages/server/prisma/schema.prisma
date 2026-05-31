@@ -128,6 +128,7 @@ model AciRate {
   updatedAt     DateTime       @updatedAt
   @@unique([year, make, model, fuel, variant])
   @@index([year])
+  @@index([importBatchId])
 }
 
 model Vehicle {
