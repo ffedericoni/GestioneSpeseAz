@@ -1,5 +1,6 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import rateLimit from "@fastify/rate-limit";
+import multipart from "@fastify/multipart";
 import { sessionPlugin } from "./plugins/session.js";
 import { authRoutes } from "./auth/auth.routes.js";
 import { userRoutes } from "./users/users.routes.js";
@@ -19,6 +20,9 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
   // Registered globally:false so it only applies to routes that opt in via
   // config.rateLimit (the login route).
   await app.register(rateLimit, { global: false });
+
+  // Enables req.file() for the ACI CSV import endpoint.
+  await app.register(multipart);
 
   await app.register(sessionPlugin);
 
