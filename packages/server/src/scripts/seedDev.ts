@@ -42,6 +42,12 @@ async function main(): Promise<void> {
     role: "MANAGER",
   });
   await upsertUser({
+    email: "amministrazione@azienda.it",
+    password: "password123",
+    fullName: "Franca Finanza",
+    role: "FINANCE",
+  });
+  await upsertUser({
     email: "dipendente@azienda.it",
     password: "password123",
     fullName: "Elsa Dipendente",
@@ -49,7 +55,9 @@ async function main(): Promise<void> {
     managerEmail: "responsabile@azienda.it",
   });
   // eslint-disable-next-line no-console
-  console.log("Seeded dev users: admin@/responsabile@/dipendente@azienda.it (password123)");
+  console.log(
+    "Seeded dev users: admin@/responsabile@/amministrazione@/dipendente@azienda.it (password123)",
+  );
   await prisma.$disconnect();
 }
 
