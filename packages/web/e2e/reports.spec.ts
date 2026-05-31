@@ -35,7 +35,15 @@ test("employee creates and submits a report; manager approves it", async ({ page
   await expect(page.getByText("Da approvare")).toBeVisible();
 
   // Manager: log in, open the approval queue, approve.
-  await page.getByRole("button", { name: "Esci" }).click();
+  // Logout is fire-and-forget in the UI; wait for the server to clear the
+  // session before navigating, otherwise login()'s goto can abort the in-flight
+  // /logout request and leave the employee session active (flaky under load).
+  await Promise.all([
+    page.waitForResponse(
+      (r) => r.url().includes("/api/logout") && r.request().method() === "POST",
+    ),
+    page.getByRole("button", { name: "Esci" }).click(),
+  ]);
   await login(page, "responsabile@azienda.it");
   await page.getByRole("link", { name: "Approvazioni" }).click();
   await expect(page.getByRole("heading", { name: "Note spese da approvare" })).toBeVisible();
