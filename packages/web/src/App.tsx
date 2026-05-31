@@ -7,6 +7,7 @@ import { UsersPage } from "./pages/UsersPage.js";
 import { ReportsPage } from "./pages/ReportsPage.js";
 import { ReportDetailPage } from "./pages/ReportDetailPage.js";
 import { ApprovalsPage } from "./pages/ApprovalsPage.js";
+import { PagamentiPage } from "./pages/PagamentiPage.js";
 import { VehiclesPage } from "./pages/VehiclesPage.js";
 import { AciRatesPage } from "./pages/AciRatesPage.js";
 import { SettingsPage } from "./pages/SettingsPage.js";
@@ -34,6 +35,7 @@ function Routed(): JSX.Element {
         <Route path="/note-spese" element={<ReportsPage />} />
         <Route path="/note-spese/:id" element={<ReportDetailPage />} />
         <Route path="/approvazioni" element={<ApprovalsPage />} />
+        <Route path="/pagamenti" element={<PagamentiPage />} />
         <Route path="/utenti" element={<UsersPage />} />
         <Route path="/veicoli" element={<VehiclesPage />} />
         <Route path="/tabelle-aci" element={<AciRatesPage />} />

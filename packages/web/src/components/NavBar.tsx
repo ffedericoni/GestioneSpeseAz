@@ -22,6 +22,7 @@ export function NavBar(): JSX.Element | null {
       <Link to="/note-spese">{t("nav.reports")}</Link>
       <Link to="/veicoli">{t("nav.vehicles")}</Link>
       {hasAtLeast(user.role, "MANAGER") && <Link to="/approvazioni">{t("nav.approvals")}</Link>}
+      {hasAtLeast(user.role, "FINANCE") && <Link to="/pagamenti">{t("nav.payments")}</Link>}
       {user.role === "ADMIN" && <Link to="/tabelle-aci">{t("nav.aci")}</Link>}
       {user.role === "ADMIN" && <Link to="/impostazioni">{t("nav.settings")}</Link>}
       {user.role === "ADMIN" && <Link to="/utenti">{t("nav.users")}</Link>}
