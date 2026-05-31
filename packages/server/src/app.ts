@@ -6,6 +6,7 @@ import { authRoutes } from "./auth/auth.routes.js";
 import { userRoutes } from "./users/users.routes.js";
 import { reportRoutes } from "./reports/reports.routes.js";
 import { itemRoutes } from "./items/items.routes.js";
+import { mileageRoutes } from "./items/mileage.routes.js";
 import { aciRoutes } from "./aci/aci.routes.js";
 import { vehicleRoutes } from "./vehicles/vehicles.routes.js";
 import { settingsRoutes } from "./settings/settings.routes.js";
@@ -35,6 +36,7 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
       await api.register(userRoutes, { prefix: "/users" });
       await api.register(reportRoutes, { prefix: "/reports" });
       await api.register(itemRoutes, { prefix: "/reports/:reportId/items" });
+      await api.register(mileageRoutes, { prefix: "/items" });
       await api.register(aciRoutes, { prefix: "/aci" });
       await api.register(vehicleRoutes, { prefix: "/vehicles" });
       await api.register(settingsRoutes, { prefix: "/settings" });

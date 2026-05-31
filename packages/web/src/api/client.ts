@@ -87,6 +87,17 @@ export interface ReportItem {
   amountCents: number;
   vatCents: number | null;
   notes: string | null;
+  // Mileage snapshot (null for money categories):
+  vehicleId: string | null;
+  originAddress: string | null;
+  destinationAddress: string | null;
+  roundTrip: boolean | null;
+  baselineKm: number | null;
+  tolerancePercent: number | null;
+  enteredKm: number | null;
+  ratePerKm: string | null;
+  overageJustification: string | null;
+  routeProvider: string | null;
 }
 
 export interface ReportEvent {
@@ -140,4 +151,31 @@ export interface AciImportBatch {
 
 export interface ToleranceSetting {
   tolerancePercent: number;
+}
+
+export interface MileageQuoteInput {
+  vehicleId: string;
+  originAddress: string;
+  destinationAddress: string;
+  roundTrip: boolean;
+  manualKm: number;
+}
+
+export interface MileageQuote {
+  baselineKm: number;
+  upperBoundKm: number;
+  tolerancePercent: number;
+  ratePerKm: string;
+}
+
+export interface NewMileageItemInput extends MileageQuoteInput {
+  category: "MILEAGE";
+  date: string;
+  description: string;
+  enteredKm: number;
+  overageJustification?: string | null;
+}
+
+export function quoteMileage(input: MileageQuoteInput): Promise<MileageQuote> {
+  return api.post<MileageQuote>("/items/mileage/quote", input);
 }

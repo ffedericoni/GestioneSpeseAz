@@ -15,6 +15,10 @@ export default defineConfig({
       url: "http://localhost:3001/health",
       reuseExistingServer: true,
       timeout: 60000,
+      // E2E specs log in many times across specs; keep the login rate limiter
+      // from throttling the suite (the limiter is exercised by a dedicated
+      // server-side test instead).
+      env: { LOGIN_RATE_MAX: "1000" },
     },
     {
       command: "npm run dev",

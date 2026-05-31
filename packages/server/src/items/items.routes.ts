@@ -1,9 +1,19 @@
 import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
-import { isEditableState } from "@gsa/shared";
+import {
+  isEditableState,
+  MILEAGE_TOLERANCE_KEY,
+  parseTolerancePercent,
+  computeBaselineKm,
+  evaluateEnteredKm,
+  mileageAmountCents,
+} from "@gsa/shared";
 import { recomputeTotal } from "../reports/reports.service.js";
 import { createItemSchema, updateItemSchema } from "./items.schemas.js";
+import { ManualDistanceProvider } from "../core/distanceProvider.js";
+
+const distanceProvider = new ManualDistanceProvider();
 
 const itemSelect = {
   id: true,
@@ -14,6 +24,16 @@ const itemSelect = {
   vatCents: true,
   receiptRef: true,
   notes: true,
+  vehicleId: true,
+  originAddress: true,
+  destinationAddress: true,
+  roundTrip: true,
+  baselineKm: true,
+  tolerancePercent: true,
+  enteredKm: true,
+  ratePerKm: true,
+  overageJustification: true,
+  routeProvider: true,
 } satisfies Prisma.ExpenseItemSelect;
 
 // Loads the parent report and enforces: it exists, the caller owns it, and it
@@ -52,8 +72,67 @@ export async function itemRoutes(app: FastifyInstance): Promise<void> {
       const reportId = await requireEditableOwnReport(req, reply, req.params.reportId);
       if (!reportId) return;
 
+      const data = parsed.data;
+
+      if (data.category === "MILEAGE") {
+        const me = req.currentUser!;
+        // Vehicle must exist AND belong to the caller; an unknown/foreign vehicle
+        // makes the body invalid for this user (400, not a bare 404).
+        const vehicle = await prisma.vehicle.findFirst({
+          where: { id: data.vehicleId, userId: me.id },
+          include: { aciRate: { select: { costPerKm: true } } },
+        });
+        if (!vehicle) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
+
+        const setting = await prisma.setting.findUnique({ where: { key: MILEAGE_TOLERANCE_KEY } });
+        const tolerancePercent = parseTolerancePercent(setting?.value);
+
+        const oneWayKm = await distanceProvider.getDistanceKm({
+          origin: data.originAddress,
+          destination: data.destinationAddress,
+          manualKm: data.manualKm,
+        });
+        const baselineKm = computeBaselineKm(oneWayKm, data.roundTrip);
+
+        const evaluation = evaluateEnteredKm({
+          enteredKm: data.enteredKm,
+          baselineKm,
+          tolerancePercent,
+          justification: data.overageJustification,
+        });
+        if (!evaluation.ok) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
+
+        const ratePerKm = vehicle.aciRate.costPerKm.toString();
+        const amountCents = mileageAmountCents(data.enteredKm, ratePerKm);
+
+        const item = await prisma.expenseItem.create({
+          data: {
+            reportId,
+            category: "MILEAGE",
+            date: data.date,
+            description: data.description,
+            amountCents,
+            notes: data.notes ?? null,
+            vehicleId: vehicle.id,
+            originAddress: data.originAddress,
+            destinationAddress: data.destinationAddress,
+            roundTrip: data.roundTrip,
+            baselineKm,
+            tolerancePercent,
+            enteredKm: data.enteredKm,
+            ratePerKm,
+            overageJustification: evaluation.overUpperBound ? (data.overageJustification ?? null) : null,
+            routeProvider: "MANUAL",
+          },
+          select: itemSelect,
+        });
+        await recomputeTotal(reportId);
+        return reply.code(201).send(item);
+      }
+
+      // Money categories: unchanged behaviour.
       const item = await prisma.expenseItem.create({
-        data: { reportId, ...parsed.data },
+        data: { reportId, ...data },
         select: itemSelect,
       });
       await recomputeTotal(reportId);

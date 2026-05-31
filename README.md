@@ -61,7 +61,6 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
 Sono usati anche dal test end-to-end.
 
 ### Non ancora implementato
-- **Rimborso chilometrico (MILEAGE):** modellato a livello di dominio ma rifiutato dall'API (errore `DATI_NON_VALIDI`) — arriverà nella Slice 3 con le tabelle ACI e i veicoli.
 - **Pagamento ed esportazione:** le transizioni "Inviata al pagamento" e "Pagata" sono definite nella macchina a stati ma non ancora esposte come endpoint; l'esportazione CSV è prevista per la Slice 4.
 
 ## Funzionalità (Slice 3a — fondamenta rimborso chilometrico)
@@ -85,9 +84,26 @@ Sono usati anche dal test end-to-end.
   2026,Fiat,Panda,Benzina,1.2,0.6543
   ```
 
-### Non ancora implementato (Slice 3b)
+## Funzionalità (Slice 3b — rimborso chilometrico)
 
-- Voci di tipo `MILEAGE` nelle note spese (calcolo km × tariffa, baseline manuale,
-  tolleranza e giustificazione, andata/ritorno), il port `DistanceProvider` e
-  l'endpoint di preventivo. Finché non arriva la Slice 3b, l'API rifiuta le voci
-  `MILEAGE` con `DATI_NON_VALIDI`.
+- **Voce di rimborso chilometrico** nelle note spese: l'utente sceglie un veicolo
+  (collegato a una tariffa ACI), inserisce partenza, arrivo, andata/ritorno e la
+  distanza stimata, poi preme **Calcola** per vedere l'intervallo consentito
+  (`baseline` → `baseline × (1 + tolleranza)`) e la tariffa €/km.
+- Inserisce i **km percorsi**: oltre il limite superiore è obbligatoria una
+  **giustificazione**; la voce viene contrassegnata per il responsabile.
+- L'importo è calcolato dal server (`km × €/km`, arrotondato ai centesimi) e tutti
+  i valori (tariffa, tolleranza, km, percorso) sono **congelati** sulla voce, così
+  le note spese restano verificabili anche se le tabelle ACI o la tolleranza
+  cambiano in seguito.
+- Il calcolo della distanza è dietro un *port* `DistanceProvider`; oggi è manuale
+  (`ManualDistanceProvider`), pronto per un provider di routing reale in futuro.
+
+### Note per lo sviluppo (Slice 3b)
+
+- Core puro in `@gsa/shared/src/mileage.ts`; ricostruire con
+  `npm run build --workspace packages/shared` dopo le modifiche.
+- Endpoint preventivo: `POST /api/items/mileage/quote`.
+- Non ancora implementato: la **modifica** di una voce `MILEAGE` (PATCH) — per
+  correggere una voce la si elimina e reinserisce; il calcolo della distanza
+  reale (routing/geocoding), i viaggi multi-tappa e l'OCR restano fuori ambito.
