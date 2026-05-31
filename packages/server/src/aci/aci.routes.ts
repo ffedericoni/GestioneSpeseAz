@@ -8,7 +8,14 @@ export async function aciRoutes(app: FastifyInstance): Promise<void> {
 
   // Admin uploads a normalized CSV (multipart, field name "file").
   app.post("/import", { preHandler: app.requireRole("ADMIN") }, async (req, reply) => {
-    const file = await req.file();
+    // req.file() throws if the request is not multipart/form-data; treat any
+    // missing/invalid upload as a plain bad request rather than a 500/406.
+    let file: Awaited<ReturnType<typeof req.file>>;
+    try {
+      file = await req.file();
+    } catch {
+      return reply.code(400).send({ error: "DATI_NON_VALIDI" });
+    }
     if (!file) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
     const buf = await file.toBuffer();
     const result = await importAciCsv(buf.toString("utf-8"), file.filename, req.currentUser!.id);

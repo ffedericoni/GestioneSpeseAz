@@ -99,4 +99,12 @@ describe("ACI import", () => {
     const res = await emp.post("/api/aci/import").attach("file", Buffer.from(GOOD_CSV), "rates.csv");
     expect(res.status).toBe(403);
   });
+
+  it("returns 400 (not 500) for a non-multipart request", async () => {
+    await seedAdminAndEmployee();
+    const admin = await loginAs("admin@example.com", "password123");
+    const res = await admin.post("/api/aci/import").send({ not: "multipart" });
+    expect(res.status).toBe(400);
+    expect(res.body.error).toBe("DATI_NON_VALIDI");
+  });
 });
