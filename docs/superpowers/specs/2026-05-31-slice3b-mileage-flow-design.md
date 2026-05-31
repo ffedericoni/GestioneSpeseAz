@@ -30,8 +30,13 @@ total and state machine unchanged.
 - Prisma migration adding the §7/§13 mileage columns to `ExpenseItem`
   (all nullable) and a `Vehicle.items` back-relation.
 - `POST /api/items/mileage/quote` — pre-flight calculator, no DB write.
-- Item create/update accepts `MILEAGE`, re-computes server-side, snapshots.
+- Item **create** accepts `MILEAGE`, re-computes server-side, snapshots.
 - Mileage entry sub-form in `ReportDetailPage.tsx`; new Italian strings.
+
+Item **edit** (`PATCH`) of a `MILEAGE` item is **deferred** (YAGNI): no UI edits
+items of any category today (the items table only offers remove), so the create
+path plus delete-and-re-add covers the flow. Money-item `PATCH` is unchanged; a
+`PATCH` carrying `MILEAGE`/mileage fields is rejected as before.
 
 **Out of scope (deferred, unchanged from parent §17):**
 
@@ -208,7 +213,7 @@ Pre-flight calculator the UI calls before saving. New route module
   (`ratePerKm` is the rate's `costPerKm` string).
 - Invalid body (missing/positive checks) → `400 DATI_NON_VALIDI`.
 
-### 7.2 Item create/update accepts `MILEAGE`
+### 7.2 Item create accepts `MILEAGE`
 
 `createItemSchema` becomes a Zod **discriminated union on `category`**:
 
@@ -238,8 +243,10 @@ Server handling for a `MILEAGE` create (in `items.routes.ts`, after the existing
    plus `date`, `description`, `notes`.
 7. `recomputeTotal(reportId)` (existing) rolls it into the report total.
 
-`PATCH` on a `MILEAGE` item re-runs the same resolve/compute/snapshot path with
-the merged values. Editing/ownership/state guards are unchanged.
+`PATCH` keeps its current behaviour: it accepts only money-category fields
+(`updateItemSchema` stays the partial money schema). Mileage-item editing is
+deferred (see §2) — an employee corrects a mileage item by deleting and
+re-adding it. Ownership/state guards are unchanged.
 
 The server **never trusts client-supplied `amountCents` or `baselineKm`** for
 mileage; it always recomputes from the vehicle's rate and the current tolerance.
@@ -322,8 +329,8 @@ Write the failing test first, watch it fail, then minimum code to pass.
 **Modify:**
 - `packages/shared/src/index.ts` — export `mileage.ts`.
 - `packages/server/prisma/schema.prisma` — mileage columns + `Vehicle.items`.
-- `packages/server/src/items/items.schemas.ts` — discriminated union incl. `MILEAGE`.
-- `packages/server/src/items/items.routes.ts` — mileage create/update path.
+- `packages/server/src/items/items.schemas.ts` — `createItemSchema` discriminated union incl. `MILEAGE`; `updateItemSchema` stays money-only.
+- `packages/server/src/items/items.routes.ts` — mileage create path.
 - `packages/server/src/app.ts` — mount `mileage.routes.ts` under `/api/items`.
 - `packages/web/src/api/client.ts` — `MileageQuote` type + `quoteMileage`.
 - `packages/web/src/i18n.ts` — `items.mileage.*` strings.
