@@ -4,6 +4,11 @@ export default defineConfig({
   testDir: "./e2e",
   timeout: 30000,
   expect: { timeout: 10000 },
+  // The specs all exercise one shared dev database and the same seeded users
+  // (e.g. several create reports for dipendente@, aci-vehicles imports rates).
+  // Running them in parallel races on that shared state and intermittently
+  // fails; serialize the suite so the gate is deterministic.
+  workers: 1,
   use: {
     baseURL: "http://localhost:5173",
     locale: "it-IT",
