@@ -115,9 +115,10 @@ export function mileageAmountCents(enteredKm: number, ratePerKm: string): number
 ```
 
 Notes:
-- `enteredKm` and `oneWayKm` are validated as positive finite numbers by the API
-  schema (Zod) before reaching the core; the core assumes sane numeric input and
-  focuses on the domain rules.
+- `enteredKm` and `oneWayKm` are whole kilometres, validated as positive integers
+  by the API schema (Zod) before reaching the core; the core assumes sane numeric
+  input and focuses on the domain rules. `upperBoundKm` (baseline × (1 + pct/100))
+  may be fractional — it is a comparison bound only and is never stored.
 - `requiresJustification` is `true` whenever the entry is over the upper bound,
   so the API/UI can flag the item even on the accepted (`ok: true`) path.
 
@@ -167,9 +168,9 @@ model ExpenseItem {
   originAddress        String?
   destinationAddress   String?
   roundTrip            Boolean  @default(false)
-  baselineKm           Float?
+  baselineKm           Int?
   tolerancePercent     Int?
-  enteredKm            Float?
+  enteredKm            Int?
   ratePerKm            Decimal? @db.Decimal(8, 4)
   overageJustification String?
   routeProvider        String?
@@ -181,9 +182,10 @@ model Vehicle {
 }
 ```
 
-`baselineKm` / `enteredKm` are `Float` (kilometres, not money). `ratePerKm`
-mirrors `AciRate.costPerKm` precision (`Decimal(8,4)`). The computed money lands
-in the existing `amountCents Int`.
+`baselineKm` / `enteredKm` are `Int` (whole kilometres — no sub-km precision
+needed). `tolerancePercent` is `Int`. `ratePerKm` mirrors `AciRate.costPerKm`
+precision (`Decimal(8,4)`). The computed money lands in the existing
+`amountCents Int`.
 
 ## 7. API surface (under `/api`, role-guarded)
 
@@ -213,8 +215,8 @@ Pre-flight calculator the UI calls before saving. New route module
 - Money categories (`MEALS_LODGING`, `TRANSPORT`, `OTHER`): unchanged shape
   (`category, date, description, amountCents, vatCents?, receiptRef?, notes?`).
 - `MILEAGE`: `{ category: "MILEAGE", date, description, vehicleId,
-  originAddress, destinationAddress, roundTrip (bool), manualKm (positive),
-  enteredKm (positive), overageJustification?, notes? }`. **No client
+  originAddress, destinationAddress, roundTrip (bool), manualKm (positive int),
+  enteredKm (positive int), overageJustification?, notes? }`. **No client
   `amountCents`** — the server computes it.
 
 Server handling for a `MILEAGE` create (in `items.routes.ts`, after the existing
@@ -289,7 +291,7 @@ Write the failing test first, watch it fail, then minimum code to pass.
   at/below baseline (ok, no justification), exactly at upper bound (ok), just
   over without justification (`!ok`), over with justification (`ok`,
   `requiresJustification` true); `mileageAmountCents` rounding (e.g.
-  `123.4 km × "0.6543" → 8074` cents).
+  `123 km × "0.6543" → 8048` cents).
 - **Core (Vitest, server):** `ManualDistanceProvider` returns `manualKm` and
   throws on missing/non-positive; `FakeDistanceProvider` returns its configured
   value.
