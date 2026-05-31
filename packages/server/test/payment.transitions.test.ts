@@ -67,6 +67,11 @@ describe("POST /reports/:id/send-payment", () => {
 });
 
 describe("POST /reports/:id/mark-paid", () => {
+  it("requires authentication", async () => {
+    const res = await request(app.server).post("/api/reports/x/mark-paid").send({});
+    expect(res.status).toBe(401);
+  });
+
   it("records paidAt and paymentReference", async () => {
     const { emp } = await seedCast();
     const report = await seedReport({ ownerId: emp.id, state: "SENT_FOR_PAYMENT" });
@@ -90,7 +95,8 @@ describe("POST /reports/:id/mark-paid", () => {
     expect(res.status).toBe(200);
     const row = await prisma.expenseReport.findUnique({ where: { id: report.id } });
     expect(row?.paymentReference).toBeNull();
-    expect(row?.paidAt!.getTime()).toBeGreaterThanOrEqual(before - 1000);
+    expect(row?.paidAt!.getTime()).toBeGreaterThanOrEqual(before);
+    expect(row?.paidAt!.getTime()).toBeLessThanOrEqual(Date.now() + 1000);
   });
 
   it("trims a blank reference to null", async () => {
