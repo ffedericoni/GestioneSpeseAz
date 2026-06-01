@@ -1,6 +1,9 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { Plus, Car } from "lucide-react";
 import { api, type Vehicle, type AciRate } from "../api/client.js";
+import { Switch } from "../components/ui.js";
+import { PageHead } from "../components/chrome.js";
 
 export function VehiclesPage(): JSX.Element {
   const { t } = useTranslation();
@@ -19,9 +22,7 @@ export function VehiclesPage(): JSX.Element {
     setLoading(false);
   }
 
-  useEffect(() => {
-    void refresh();
-  }, []);
+  useEffect(() => { void refresh(); }, []);
 
   async function searchRates(e: FormEvent): Promise<void> {
     e.preventDefault();
@@ -31,15 +32,10 @@ export function VehiclesPage(): JSX.Element {
   }
 
   async function addVehicle(e: FormEvent): Promise<void> {
-    e.preventDefault();
-    setError(null);
+    e.preventDefault(); setError(null);
     try {
       await api.post("/vehicles", { label, aciRateId, plate: plate || null });
-      setLabel("");
-      setPlate("");
-      setSearch("");
-      setRates([]);
-      setAciRateId("");
+      setLabel(""); setPlate(""); setSearch(""); setRates([]); setAciRateId("");
       await refresh();
     } catch {
       setError(t("vehicles.createError"));
@@ -51,70 +47,178 @@ export function VehiclesPage(): JSX.Element {
     await refresh();
   }
 
-  const rateLabel = (r: AciRate): string => `${r.make} ${r.model} ${r.fuel} ${r.variant} (${r.year})`;
+  const rateLabel = (r: AciRate): string =>
+    `${r.make} ${r.model} ${r.fuel} ${r.variant} (${r.year})`;
 
   return (
-    <main style={{ maxWidth: 900, margin: "1rem auto", fontFamily: "system-ui" }}>
-      <h1>{t("vehicles.title")}</h1>
+    <>
+      <PageHead
+        eyebrow={t("vehicles.title")}
+        title="I miei"
+        accent="veicoli"
+      />
 
-      <form onSubmit={searchRates} style={{ display: "flex", gap: 8, marginBottom: 8 }}>
-        <input
-          placeholder={t("vehicles.rateSearch")}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{ flex: 1 }}
-        />
-        <button type="submit">{t("vehicles.search")}</button>
-      </form>
+      {/* Add vehicle card */}
+      <div className="pg-card" style={{ padding: "var(--cardpad)", marginBottom: 24 }}>
+        <div className="pg-eyebrow" style={{ marginBottom: 14 }}>{t("vehicles.add")}</div>
 
-      <form onSubmit={addVehicle} style={{ display: "grid", gap: 8, maxWidth: 480, marginBottom: 24 }}>
-        <select aria-label={t("vehicles.rate")} value={aciRateId} onChange={(e) => setAciRateId(e.target.value)} required>
-          {rates.length === 0 ? (
-            <option value="">{t("vehicles.noRate")}</option>
-          ) : (
-            rates.map((r) => (
-              <option key={r.id} value={r.id}>{rateLabel(r)} — {r.costPerKm} €/km</option>
-            ))
+        {/* ACI search */}
+        <form onSubmit={searchRates} style={{ display: "flex", gap: 10, marginBottom: 14 }}>
+          <label className="pg-field" style={{ flex: 1 }}>
+            <span className="pg-label">{t("vehicles.rateSearch")}</span>
+            <input
+              className="pg-input"
+              placeholder={t("vehicles.rateSearch")}
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+            />
+          </label>
+          <button
+            type="submit"
+            className="pg-btn pg-btn--ghost"
+            style={{ alignSelf: "flex-end" }}
+          >
+            {t("vehicles.search")}
+          </button>
+        </form>
+
+        {/* Vehicle form */}
+        <form
+          onSubmit={addVehicle}
+          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, maxWidth: 560 }}
+        >
+          <label className="pg-field">
+            <span className="pg-label">{t("vehicles.rate")}</span>
+            <select
+              className="pg-select"
+              value={aciRateId}
+              onChange={(e) => setAciRateId(e.target.value)}
+              required
+              style={{ gridColumn: "1 / -1" } as React.CSSProperties}
+            >
+              {rates.length === 0 ? (
+                <option value="">{t("vehicles.noRate")}</option>
+              ) : (
+                rates.map((r) => (
+                  <option key={r.id} value={r.id}>
+                    {rateLabel(r)} — {r.costPerKm} €/km
+                  </option>
+                ))
+              )}
+            </select>
+          </label>
+
+          <label className="pg-field">
+            <span className="pg-label">{t("vehicles.label")}</span>
+            <input
+              className="pg-input"
+              placeholder={t("vehicles.label")}
+              value={label}
+              onChange={(e) => setLabel(e.target.value)}
+              required
+            />
+          </label>
+
+          <label className="pg-field">
+            <span className="pg-label">{t("vehicles.plate")}</span>
+            <input
+              className="pg-input"
+              placeholder={t("vehicles.plate")}
+              value={plate}
+              onChange={(e) => setPlate(e.target.value)}
+            />
+          </label>
+
+          {error && (
+            <p
+              role="alert"
+              style={{
+                color: "var(--pg-danger)",
+                fontSize: 13,
+                gridColumn: "1 / -1",
+                margin: 0,
+              }}
+            >
+              {error}
+            </p>
           )}
-        </select>
-        <input placeholder={t("vehicles.label")} value={label} onChange={(e) => setLabel(e.target.value)} required />
-        <input placeholder={t("vehicles.plate")} value={plate} onChange={(e) => setPlate(e.target.value)} />
-        <button type="submit">{t("vehicles.add")}</button>
-      </form>
-      {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
 
+          <button
+            type="submit"
+            className="pg-btn pg-btn--gold"
+            style={{ gridColumn: "1 / -1", justifySelf: "flex-start" }}
+          >
+            <Plus size={15} strokeWidth={2} />
+            {t("vehicles.add")}
+          </button>
+        </form>
+      </div>
+
+      {/* Vehicles table */}
       {loading ? (
-        <p>{t("common.loading")}</p>
+        <p className="pg-meta">{t("common.loading")}</p>
       ) : vehicles.length === 0 ? (
-        <p>{t("vehicles.empty")}</p>
+        <p className="pg-meta">{t("vehicles.empty")}</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left" }}>{t("vehicles.label")}</th>
-              <th style={{ textAlign: "left" }}>{t("vehicles.plate")}</th>
-              <th style={{ textAlign: "left" }}>{t("vehicles.rate")}</th>
-              <th style={{ textAlign: "left" }}>{t("vehicles.status.header")}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehicles.map((v) => (
-              <tr key={v.id}>
-                <td>{v.label}</td>
-                <td>{v.plate ?? "—"}</td>
-                <td>{rateLabel(v.aciRate)}</td>
-                <td>{v.active ? t("vehicles.status.active") : t("vehicles.status.inactive")}</td>
-                <td>
-                  <button onClick={() => void toggleActive(v)}>
-                    {v.active ? t("vehicles.deactivate") : t("vehicles.activate")}
-                  </button>
-                </td>
+        <div className="pg-card" style={{ overflow: "hidden" }}>
+          <table className="pg-table">
+            <thead>
+              <tr>
+                <th>{t("vehicles.label")}</th>
+                <th>{t("vehicles.plate")}</th>
+                <th>{t("vehicles.rate")}</th>
+                <th className="pg-num">€/km</th>
+                <th>{t("vehicles.status.header")}</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {vehicles.map((v) => (
+                <tr key={v.id} style={{ opacity: v.active ? 1 : 0.6 }}>
+                  <td>
+                    <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                      <div
+                        style={{
+                          width: 30,
+                          height: 30,
+                          borderRadius: "var(--r-sm)",
+                          background: "var(--pg-gold-tint)",
+                          display: "grid",
+                          placeItems: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        <Car size={16} color="var(--pg-gold-deep)" strokeWidth={1.6} />
+                      </div>
+                      <span style={{ fontWeight: 600, color: "var(--pg-ink)" }}>
+                        {v.label}
+                      </span>
+                    </div>
+                  </td>
+                  <td>{v.plate ?? "—"}</td>
+                  <td>{rateLabel(v.aciRate)}</td>
+                  <td className="pg-num">{v.aciRate.costPerKm}</td>
+                  <td>
+                    <Switch
+                      on={v.active}
+                      onChange={() => void toggleActive(v)}
+                    />
+                  </td>
+                  <td>
+                    <button
+                      className="pg-btn pg-btn--ghost"
+                      style={{ padding: "5px 10px", fontSize: 12 }}
+                      onClick={() => void toggleActive(v)}
+                    >
+                      {v.active ? t("vehicles.deactivate") : t("vehicles.activate")}
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    </main>
+    </>
   );
 }
