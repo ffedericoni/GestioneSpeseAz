@@ -1,0 +1,242 @@
+/* ============================================================
+   Gruppo Pellegrini — approximate brand system
+   Corporate red + warm neutrals · editorial serif + crisp grotesk
+   ============================================================ */
+@import url('https://fonts.googleapis.com/css2?family=Spectral:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Hanken+Grotesk:wght@400;500;600;700;800&display=swap');
+
+:root {
+  /* Brand — gold (from the Pellegrini emblem) */
+  --pg-gold:       #ad9961;
+  --pg-gold-deep:  #8a7635;  /* legible gold for text / links on paper */
+  --pg-gold-soft:  #c9bb8f;
+  --pg-gold-tint:  #efe6d0;  /* pale wash */
+  --pg-gold-line:  #d8cba3;
+
+  /* Back-compat alias — old --pg-red usages now resolve to brand gold */
+  --pg-red:        var(--pg-gold-deep);
+  --pg-red-deep:   #6f5e2a;
+  --pg-red-tint:   var(--pg-gold-tint);
+
+  /* Ink + text on warm paper (slate, echoing the wordmark grey) */
+  --pg-ink:    #383d40;
+  --pg-ink-2:  #2a2e30;
+  --pg-slate:  #737a7e;
+  --pg-body:   #555a5d;
+  --pg-muted:  #8b8f90;
+  --pg-faint:  #b5b4ad;
+
+  /* Surfaces (warm paper) */
+  --pg-paper:   #f6f1e8;
+  --pg-card:    #fffdf8;
+  --pg-sand:    #ece3d4;
+  --pg-sand-2:  #e0d5c2;
+  --pg-rule:    #e6ddcd;
+  --pg-rule-2:  #d5cab4;
+
+  /* Dark nav rail (warm graphite) */
+  --pg-rail:    #33373a;
+  --pg-rail-2:  #3e4346;
+  --pg-rail-fg: #b7bbbc;
+
+  /* Semantic */
+  --pg-green:    #4d7a4a;  --pg-green-bg:  #e7efdf;
+  --pg-amber:    #9c7a1e;  --pg-amber-bg:  #f3ead0;
+  --pg-blue:     #41646f;  --pg-blue-bg:   #e3ecec;
+  --pg-slate-bg: #ebe6dc;
+  --pg-danger:   #a4402f;  --pg-danger-tint: #f1ddd8;
+
+  /* Type */
+  --serif: 'Spectral', Georgia, serif;
+  --sans:  'Hanken Grotesk', system-ui, sans-serif;
+
+  /* Tweakable (overridden live) */
+  --r:        12px;   /* corner radius */
+  --r-sm:     8px;
+  --rowpad-y: 8px;    /* table row vertical padding */
+  --cardpad:  22px;   /* card interior padding */
+  --ui-fs:    13.5px; /* base UI font size */
+  --gap:      18px;
+}
+
+* { box-sizing: border-box; }
+
+.pg {
+  font-family: var(--sans);
+  font-size: var(--ui-fs);
+  color: var(--pg-body);
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  -webkit-font-smoothing: antialiased;
+}
+
+.pg h1, .pg h2, .pg h3 { margin: 0; color: var(--pg-ink); }
+
+/* Eyebrow — uppercase micro-label */
+.pg-eyebrow {
+  font-family: var(--sans);
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--pg-muted);
+}
+.pg-eyebrow--red { color: var(--pg-gold-deep); }
+
+/* Serif display title */
+.pg-title {
+  font-family: var(--serif);
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--pg-ink);
+  line-height: 1.12;
+}
+.pg-title em { font-style: italic; color: var(--pg-red); }
+
+/* Meta dots row */
+.pg-meta {
+  font-size: 11.5px;
+  color: var(--pg-muted);
+  letter-spacing: 0.01em;
+}
+
+/* ---- Buttons ---- */
+.pg-btn {
+  font-family: var(--sans);
+  font-weight: 600;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  padding: 9px 16px;
+  border-radius: var(--r-sm);
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  white-space: nowrap;
+  transition: background .18s, color .18s, border-color .18s;
+}
+.pg-btn--primary { background: var(--pg-ink); color: #fff; }
+.pg-btn--primary:hover { background: var(--pg-ink-2); }
+.pg-btn--gold { background: var(--pg-gold); color: #2c2e26; }
+.pg-btn--gold:hover { background: var(--pg-gold-deep); color: #fff; }
+.pg-btn--ghost { background: transparent; color: var(--pg-ink); border-color: var(--pg-rule-2); }
+.pg-btn--ghost:hover { background: var(--pg-sand); }
+.pg-btn--quiet { background: var(--pg-sand); color: var(--pg-body); }
+.pg-btn--quiet:hover { background: var(--pg-sand-2); }
+.pg-btn--danger { background: transparent; color: var(--pg-danger); border-color: var(--pg-danger-tint); }
+.pg-btn--danger:hover { background: var(--pg-danger-tint); }
+
+/* ---- Status badge ---- */
+.pg-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 600;
+  font-size: 11.5px;
+  letter-spacing: 0.02em;
+  padding: 4px 10px 4px 9px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+}
+.pg-badge .dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; opacity: .9; }
+
+/* ---- Category pill ---- */
+.pg-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--pg-ink);
+}
+.pg-cat .swatch { width: 9px; height: 9px; border-radius: 2.5px; }
+
+/* ---- Inputs ---- */
+.pg-field { display: flex; flex-direction: column; gap: 5px; }
+.pg-label {
+  font-size: 10.5px; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: var(--pg-muted);
+}
+.pg-input, .pg-select, .pg-textarea {
+  font-family: var(--sans);
+  font-size: 13px;
+  color: var(--pg-ink);
+  background: var(--pg-card);
+  border: 1.5px solid var(--pg-rule-2);
+  border-radius: var(--r-sm);
+  padding: 9px 11px;
+  width: 100%;
+}
+.pg-input::placeholder, .pg-textarea::placeholder { color: var(--pg-faint); }
+.pg-input:focus, .pg-select:focus, .pg-textarea:focus {
+  outline: none; border-color: var(--pg-gold); box-shadow: 0 0 0 3px var(--pg-gold-tint);
+}
+
+/* ---- Card ---- */
+.pg-card {
+  background: var(--pg-card);
+  border: 1px solid var(--pg-rule);
+  border-radius: var(--r);
+}
+
+/* ---- Table ---- */
+.pg-table { width: 100%; border-collapse: collapse; }
+.pg-table th {
+  text-align: left;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--pg-muted);
+  padding: 0 12px 9px;
+  border-bottom: 1px solid var(--pg-rule-2);
+}
+.pg-table td {
+  padding: var(--rowpad-y) 12px;
+  border-bottom: 1px solid var(--pg-rule);
+  font-size: 13px; color: var(--pg-body);
+  vertical-align: middle;
+}
+.pg-table tbody tr:last-child td { border-bottom: none; }
+.pg-table tbody tr:hover td { background: var(--pg-paper); }
+.pg-num { text-align: right; font-variant-numeric: tabular-nums; font-weight: 600; color: var(--pg-ink); }
+
+.pg-scroll::-webkit-scrollbar { width: 9px; height: 9px; }
+.pg-scroll::-webkit-scrollbar-thumb { background: var(--pg-sand-2); border-radius: 6px; }
+
+/* ============================================================
+   Project overrides: compact + sharp preset, extra utilities
+   ============================================================ */
+:root {
+  --r:        3px;
+  --r-sm:     2px;
+  --rowpad-y: 7px;
+  --cardpad:  18px;
+  --ui-fs:    13px;
+}
+
+/* Base reset */
+html, body, #root { height: 100%; margin: 0; padding: 0; }
+body { background: var(--pg-paper); }
+
+/* Rail nav button */
+.pg-rail-btn {
+  width: 44px; height: 44px; border-radius: 11px; border: none; cursor: pointer;
+  display: grid; place-items: center; flex-shrink: 0;
+  background: transparent; color: var(--pg-rail-fg);
+  transition: background 180ms, color 180ms;
+}
+.pg-rail-btn:hover { background: var(--pg-rail-2); }
+.pg-rail-btn--active { background: var(--pg-gold) !important; color: #2c2e26 !important; }
+
+/* Monospace utility */
+.pg-mono { font-family: 'JetBrains Mono', 'Courier New', monospace; font-size: 12px; }
+
+/* Login split layout */
+.pg-login { display: flex; height: 100vh; }
+.pg-login__left {
+  width: 40%; background: var(--pg-sand); display: flex;
+  flex-direction: column; justify-content: center;
+  align-items: flex-start; padding: 60px 56px; gap: 20px;
+}
+.pg-login__right {
+  flex: 1; background: var(--pg-paper); display: flex;
+  justify-content: center; align-items: center; padding: 40px;
+}
