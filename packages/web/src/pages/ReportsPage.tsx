@@ -1,11 +1,15 @@
 import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
-import { Link } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
+import { Plus, ChevronRight } from "lucide-react";
 import { api, type ReportSummary } from "../api/client.js";
 import { formatEuroFromCents, formatDateIt } from "../format.js";
+import { StateBadge } from "../components/ui.js";
+import { PageHead } from "../components/chrome.js";
 
 export function ReportsPage(): JSX.Element {
   const { t } = useTranslation();
+  const navigate = useNavigate();
   const [reports, setReports] = useState<ReportSummary[]>([]);
   const [loading, setLoading] = useState(true);
   const [title, setTitle] = useState("");
@@ -34,51 +38,81 @@ export function ReportsPage(): JSX.Element {
   }
 
   return (
-    <main style={{ maxWidth: 900, margin: "1rem auto", fontFamily: "system-ui" }}>
-      <h1>{t("reports.title")}</h1>
+    <>
+      <PageHead
+        eyebrow={t("reports.title")}
+        title="Note"
+        accent="spese"
+      />
 
-      <form onSubmit={onCreate} style={{ display: "flex", gap: 8, marginBottom: 24 }}>
-        <input
-          placeholder={t("reports.newTitle")}
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-          style={{ flex: 1 }}
-        />
-        <button type="submit">{t("reports.create")}</button>
-      </form>
-      {error && <p role="alert" style={{ color: "#dc2626" }}>{error}</p>}
+      {/* Create card */}
+      <div className="pg-card" style={{ padding: "var(--cardpad)", marginBottom: 24 }}>
+        <div
+          className="pg-eyebrow"
+          style={{ marginBottom: 12 }}
+        >
+          {t("reports.create")}
+        </div>
+        <form onSubmit={onCreate} style={{ display: "flex", gap: 10, alignItems: "flex-end" }}>
+          <label className="pg-field" style={{ flex: 1 }}>
+            <span className="pg-label">{t("reports.newTitle")}</span>
+            <input
+              className="pg-input"
+              placeholder={t("reports.newTitle")}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+          </label>
+          <button type="submit" className="pg-btn pg-btn--gold">
+            <Plus size={15} strokeWidth={2} />
+            {t("reports.create")}
+          </button>
+        </form>
+        {error && (
+          <p role="alert" style={{ color: "var(--pg-danger)", fontSize: 13, marginTop: 8 }}>
+            {error}
+          </p>
+        )}
+      </div>
 
+      {/* Table */}
       {loading ? (
-        <p>{t("common.loading")}</p>
+        <p className="pg-meta">{t("common.loading")}</p>
       ) : reports.length === 0 ? (
-        <p>{t("reports.empty")}</p>
+        <p className="pg-meta">{t("reports.empty")}</p>
       ) : (
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={{ textAlign: "left" }}>{t("reports.newTitle")}</th>
-              <th style={{ textAlign: "left" }}>{t("reports.state")}</th>
-              <th style={{ textAlign: "right" }}>{t("reports.total")}</th>
-              <th style={{ textAlign: "left" }}>{t("reports.created")}</th>
-              <th></th>
-            </tr>
-          </thead>
-          <tbody>
-            {reports.map((r) => (
-              <tr key={r.id}>
-                <td>{r.title}</td>
-                <td>{t(`states.${r.state}`)}</td>
-                <td style={{ textAlign: "right" }}>{formatEuroFromCents(r.totalCents)}</td>
-                <td>{formatDateIt(r.createdAt)}</td>
-                <td>
-                  <Link to={`/note-spese/${r.id}`}>{t("reports.open")}</Link>
-                </td>
+        <div className="pg-card" style={{ overflow: "hidden" }}>
+          <table className="pg-table">
+            <thead>
+              <tr>
+                <th>{t("reports.newTitle")}</th>
+                <th>{t("reports.state")}</th>
+                <th className="pg-num">{t("reports.total")}</th>
+                <th>{t("reports.created")}</th>
+                <th />
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {reports.map((r) => (
+                <tr
+                  key={r.id}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/note-spese/${r.id}`)}
+                >
+                  <td style={{ fontWeight: 600, color: "var(--pg-ink)" }}>{r.title}</td>
+                  <td><StateBadge state={r.state} /></td>
+                  <td className="pg-num">{formatEuroFromCents(r.totalCents)}</td>
+                  <td>{formatDateIt(r.createdAt)}</td>
+                  <td style={{ width: 32 }}>
+                    <ChevronRight size={15} color="var(--pg-muted)" strokeWidth={1.6} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    </main>
+    </>
   );
 }
