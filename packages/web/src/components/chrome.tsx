@@ -107,6 +107,7 @@ function Rail(): JSX.Element {
           <button
             key={route}
             title={label}
+            aria-label={label}
             onClick={() => navigate(route)}
             className={`pg-rail-btn${active ? " pg-rail-btn--active" : ""}`}
           >
@@ -124,17 +125,22 @@ function Rail(): JSX.Element {
           alignItems: "center",
         }}
       >
-        {user.role === "ADMIN" && (
-          <button
-            title="Impostazioni"
-            onClick={() => navigate("/impostazioni")}
-            className={`pg-rail-btn${isActive("/impostazioni") ? " pg-rail-btn--active" : ""}`}
-          >
-            <Settings size={20} strokeWidth={isActive("/impostazioni") ? 1.9 : 1.6} />
-          </button>
-        )}
+        {user.role === "ADMIN" && (() => {
+          const settingsActive = isActive("/impostazioni");
+          return (
+            <button
+              title="Impostazioni"
+              aria-label="Impostazioni"
+              onClick={() => navigate("/impostazioni")}
+              className={`pg-rail-btn${settingsActive ? " pg-rail-btn--active" : ""}`}
+            >
+              <Settings size={20} strokeWidth={settingsActive ? 1.9 : 1.6} />
+            </button>
+          );
+        })()}
         <button
           title="Esci"
+          aria-label="Esci"
           onClick={() => void logout()}
           className="pg-rail-btn"
         >
@@ -224,8 +230,9 @@ function Topbar({ detailTitle }: { detailTitle: string }): JSX.Element {
           gap: 14,
         }}
       >
-        {/* Search affordance (visual only) */}
+        {/* Search affordance (visual only — not interactive) */}
         <div
+          aria-hidden="true"
           style={{
             display: "flex",
             alignItems: "center",
