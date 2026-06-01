@@ -40,6 +40,10 @@ export function UsersPage(): JSX.Element {
   async function onCreate(e: FormEvent): Promise<void> {
     e.preventDefault();
     setFormError(null);
+    if (role !== "ADMIN" && !managerId) {
+      setFormError(t("users.approverRequired"));
+      return;
+    }
     try {
       await api.post("/users", {
         fullName,
@@ -56,7 +60,11 @@ export function UsersPage(): JSX.Element {
       await refresh();
     } catch (err) {
       const code = (err as { code?: string }).code;
-      setFormError(code === "EMAIL_GIA_REGISTRATA" ? t("users.emailTaken") : t("users.createError"));
+      setFormError(
+        code === "EMAIL_GIA_REGISTRATA" ? t("users.emailTaken") :
+        code === "APPROVATORE_OBBLIGATORIO" ? t("users.approverRequired") :
+        t("users.createError")
+      );
     }
   }
 
@@ -83,13 +91,34 @@ export function UsersPage(): JSX.Element {
           <input placeholder={t("users.fullName")} value={fullName} onChange={(e) => setFullName(e.target.value)} required />
           <input type="email" placeholder={t("users.email")} value={email} onChange={(e) => setEmail(e.target.value)} required />
           <input type="password" placeholder={t("login.password")} value={password} onChange={(e) => setPassword(e.target.value)} required minLength={8} />
-          <select value={role} onChange={(e) => setRole(e.target.value as Role)}>
+          <select
+            value={role}
+            onChange={(e) => {
+              const newRole = e.target.value as Role;
+              setRole(newRole);
+              if (newRole === "ADMIN") setManagerId("");
+            }}
+          >
             {ROLE_OPTIONS.map((r) => (
               <option key={r} value={r}>{t(`roles.${r}`)}</option>
             ))}
           </select>
-          <select value={managerId} onChange={(e) => setManagerId(e.target.value)}>
-            <option value="">{t("users.noManager")}</option>
+          <label style={{ fontWeight: 500 }}>
+            {t("users.approver")}
+            <span style={{ display: "block", fontSize: "0.8em", fontWeight: 400, color: "#6b7280" }}>
+              {t("users.approverHint")}
+            </span>
+          </label>
+          <select
+            value={managerId}
+            onChange={(e) => setManagerId(e.target.value)}
+            required={role !== "ADMIN"}
+          >
+            {role === "ADMIN" ? (
+              <option value="">{t("users.noManagerAdmin")}</option>
+            ) : (
+              <option value="" disabled>{t("users.selectApprover")}</option>
+            )}
             {managers.map((m) => (
               <option key={m.id} value={m.id}>{m.fullName}</option>
             ))}

@@ -41,6 +41,10 @@ export async function userRoutes(app: FastifyInstance): Promise<void> {
     const existing = await prisma.user.findUnique({ where: { email: data.email } });
     if (existing) return reply.code(409).send({ error: "EMAIL_GIA_REGISTRATA" });
 
+    if (data.role !== "ADMIN" && !data.managerId) {
+      return reply.code(400).send({ error: "APPROVATORE_OBBLIGATORIO" });
+    }
+
     const user = await prisma.user.create({
       data: {
         email: data.email,

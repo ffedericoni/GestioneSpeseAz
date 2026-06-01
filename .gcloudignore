@@ -1,0 +1,25 @@
+# Pull in all rules from .gitignore (node_modules, dist, .env, etc.)
+#!include:.gitignore
+
+# Env files — secrets are injected via Cloud Run env vars, not .env files
+.env.example
+
+# Development / local tooling
+.claude/
+.superpowers/
+superpowers/
+brainstorm/
+settings.local.json
+README.md
+docs/
+
+# Raw data files (not needed for the build)
+/ACI/
+*.xlsx
+*.csv
+convert_aci_xlsx_to_csv.py
+
+# Test artefacts (runtime only — server/test is needed by tsc during the build)
+packages/web/e2e/
+packages/web/test-results/
+packages/web/playwright.config.ts

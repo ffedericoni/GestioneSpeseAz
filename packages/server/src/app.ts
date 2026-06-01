@@ -1,6 +1,10 @@
 import Fastify, { type FastifyInstance } from "fastify";
 import rateLimit from "@fastify/rate-limit";
 import multipart from "@fastify/multipart";
+import fastifyStatic from "@fastify/static";
+import { existsSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { sessionPlugin } from "./plugins/session.js";
 import { authRoutes } from "./auth/auth.routes.js";
 import { userRoutes } from "./users/users.routes.js";
@@ -47,6 +51,22 @@ export async function buildApp(opts: BuildAppOptions = {}): Promise<FastifyInsta
   );
 
   app.get("/health", async () => ({ status: "ok" }));
+
+  // Serve the React SPA in production when the web dist exists alongside this build.
+  // In dev the Vite server handles the frontend; the dist folder won't be present.
+  const webDist = path.resolve(
+    path.dirname(fileURLToPath(import.meta.url)),
+    "../../../web/dist",
+  );
+  if (existsSync(webDist)) {
+    await app.register(fastifyStatic, { root: webDist });
+    app.setNotFoundHandler(async (req, reply) => {
+      if (req.url.startsWith("/api/")) {
+        return reply.code(404).send({ error: "Not found" });
+      }
+      return reply.sendFile("index.html");
+    });
+  }
 
   return app;
 }
