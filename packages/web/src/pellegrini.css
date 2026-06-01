@@ -203,14 +203,18 @@
 
 /* ============================================================
    Project overrides: compact + sharp preset, extra utilities
+   These intentionally override the library defaults above.
+   Active values: --r 3px (sharp), --rowpad-y 7px / --cardpad 18px (compact).
    ============================================================ */
 :root {
-  --r:        3px;
-  --r-sm:     2px;
-  --rowpad-y: 7px;
-  --cardpad:  18px;
-  --ui-fs:    13px;
+  --r:        3px;   /* sharp (overrides library default 12px) */
+  --r-sm:     2px;   /* sharp (overrides library default 8px)  */
+  --rowpad-y: 7px;   /* compact (overrides library default 8px)   */
+  --cardpad:  18px;  /* compact (overrides library default 22px)  */
+  --ui-fs:    13px;  /* compact (overrides library default 13.5px)*/
 }
+
+/* global reset — intentional; body background tied to brand paper token */
 
 /* Base reset */
 html, body, #root { height: 100%; margin: 0; padding: 0; }
