@@ -2,7 +2,12 @@ import type { FastifyInstance, FastifyReply, FastifyRequest } from "fastify";
 import { Prisma } from "@prisma/client";
 import { prisma } from "../db.js";
 import { hasAtLeast, isEditableState, type ReportAction } from "@gsa/shared";
-import { createReportSchema, updateReportSchema, reviseSchema } from "./reports.schemas.js";
+import {
+  createReportSchema,
+  updateReportSchema,
+  reviseSchema,
+  markPaidSchema,
+} from "./reports.schemas.js";
 import { performTransition, TransitionError } from "./reports.service.js";
 
 const reportSelect = {
@@ -21,8 +26,18 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
   app.get<{ Querystring: { scope?: string } }>(
     "/",
     { preHandler: app.requireAuth },
-    async (req) => {
+    async (req, reply) => {
       const me = req.currentUser!;
+      if (req.query.scope === "payments") {
+        if (!hasAtLeast(me.role, "FINANCE")) {
+          return reply.code(403).send({ error: "NON_AUTORIZZATO" });
+        }
+        return prisma.expenseReport.findMany({
+          where: { state: { in: ["APPROVED", "SENT_FOR_PAYMENT", "PAID"] } },
+          select: reportSelect,
+          orderBy: { submittedAt: "asc" },
+        });
+      }
       if (req.query.scope === "approvals") {
         return prisma.expenseReport.findMany({
           where: {
@@ -138,10 +153,11 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
     reply: FastifyReply,
     action: ReportAction,
     comment?: string,
+    payment?: { paidAt: Date; paymentReference: string | null },
   ): Promise<unknown> {
     const me = req.currentUser!;
     try {
-      const updated = await performTransition(req.params.id, action, me, comment);
+      const updated = await performTransition(req.params.id, action, me, comment, payment);
       if (!updated) return reply.code(404).send({ error: "NOTA_SPESE_NON_TROVATA" });
       return reply.send({
         id: updated.id,
@@ -149,6 +165,8 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
         title: updated.title,
         state: updated.state,
         totalCents: updated.totalCents,
+        paidAt: updated.paidAt,
+        paymentReference: updated.paymentReference,
       });
     } catch (err) {
       if (err instanceof TransitionError) {
@@ -184,6 +202,24 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
       const parsed = reviseSchema.safeParse(req.body);
       if (!parsed.success) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
       return runTransition(req, reply, "revise", parsed.data.comment);
+    },
+  );
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/send-payment",
+    { preHandler: app.requireAuth },
+    (req, reply) => runTransition(req, reply, "send-payment"),
+  );
+
+  app.post<{ Params: { id: string } }>(
+    "/:id/mark-paid",
+    { preHandler: app.requireAuth },
+    (req, reply) => {
+      const parsed = markPaidSchema.safeParse(req.body ?? {});
+      if (!parsed.success) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
+      const paidAt = parsed.data.paidAt ? new Date(parsed.data.paidAt) : new Date();
+      const paymentReference = parsed.data.paymentReference?.trim() || null;
+      return runTransition(req, reply, "mark-paid", undefined, { paidAt, paymentReference });
     },
   );
 }

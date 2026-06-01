@@ -1,14 +1,17 @@
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, useParams } from "react-router-dom";
-import { actionsFor, MONEY_CATEGORIES, type MoneyCategory, type Category } from "@gsa/shared";
+import { actionsFor, hasAtLeast, MONEY_CATEGORIES, type MoneyCategory, type Category } from "@gsa/shared";
 import {
   api,
   quoteMileage,
+  markPaid,
   type ReportDetail,
   type Vehicle,
   type MileageQuote,
+  type MarkPaidInput,
 } from "../api/client.js";
+import { MarkPaidForm } from "../components/MarkPaidForm.js";
 import { useAuth } from "../auth/AuthContext.js";
 import { formatEuroFromCents, formatDateIt } from "../format.js";
 
@@ -35,6 +38,7 @@ export function ReportDetailPage(): JSX.Element {
   const [enteredKm, setEnteredKm] = useState("");
   const [justification, setJustification] = useState("");
   const [quote, setQuote] = useState<MileageQuote | null>(null);
+  const [showPayForm, setShowPayForm] = useState(false);
 
   const refresh = useCallback(async (): Promise<void> => {
     if (!id) return;
@@ -61,6 +65,7 @@ export function ReportDetailPage(): JSX.Element {
     report.state === "IN_REVISION";
   const available = actionsFor(report.state);
   const canManage = available.some((a) => a === "approve" || a === "reject" || a === "revise");
+  const isFinance = !!user && hasAtLeast(user.role, "FINANCE");
 
   const overBound = quote != null && Number(enteredKm) > quote.upperBoundKm;
 
@@ -131,7 +136,7 @@ export function ReportDetailPage(): JSX.Element {
     await refresh();
   }
 
-  async function act(action: "submit" | "approve" | "reject" | "revise"): Promise<void> {
+  async function act(action: "submit" | "approve" | "reject" | "revise" | "send-payment"): Promise<void> {
     setError(null);
     try {
       if (action === "revise") {
@@ -141,6 +146,17 @@ export function ReportDetailPage(): JSX.Element {
       } else {
         await api.post(`/reports/${report!.id}/${action}`);
       }
+      await refresh();
+    } catch {
+      setError(t("reports.actionError"));
+    }
+  }
+
+  async function payNow(input: MarkPaidInput): Promise<void> {
+    setError(null);
+    try {
+      await markPaid(report!.id, input);
+      setShowPayForm(false);
       await refresh();
     } catch {
       setError(t("reports.actionError"));
@@ -329,6 +345,16 @@ export function ReportDetailPage(): JSX.Element {
             <button onClick={() => void act("revise")}>{t("reports.revise")}</button>
           </>
         )}
+        {isFinance && available.includes("send-payment") && (
+          <button onClick={() => void act("send-payment")}>{t("reports.sendPayment")}</button>
+        )}
+        {isFinance &&
+          available.includes("mark-paid") &&
+          (showPayForm ? (
+            <MarkPaidForm onSubmit={(input) => void payNow(input)} />
+          ) : (
+            <button onClick={() => setShowPayForm(true)}>{t("reports.markPaid")}</button>
+          ))}
       </div>
     </main>
   );

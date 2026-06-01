@@ -44,7 +44,7 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
 - Gestione utenti (solo Amministratore): creazione (con ruolo e responsabile), elenco, attivazione/disattivazione. La modifica di ruolo/responsabile di un utente esistente è supportata dall'API (`PATCH /users/:id`) ma non ancora dall'interfaccia web.
 
 ## Funzionalità (Slice 2)
-- **Note spese e macchina a stati.** Un dipendente crea una nota spese, vi aggiunge le voci di spesa e la invia per approvazione; il responsabile la **approva**, la **respinge** oppure ne **richiede la revisione** (con motivazione). Stati: Bozza → Da approvare → In revisione / Approvata / Respinta (i passaggi al pagamento sono definiti ma non ancora esposti — vedi sotto).
+- **Note spese e macchina a stati.** Un dipendente crea una nota spese, vi aggiunge le voci di spesa e la invia per approvazione; il responsabile la **approva**, la **respinge** oppure ne **richiede la revisione** (con motivazione). Stati: Bozza → Da approvare → In revisione / Approvata / Respinta → Inviata al pagamento → Pagata (i passaggi al pagamento sono gestiti dall'Amministrazione — vedi Slice 4).
 - **Categorie supportate in questa slice:** Vitto e alloggio, Trasporti, Altro. Ogni voce ha importo in centesimi interi e IVA opzionale.
 - **API sotto `/api/*`.** Tutte le rotte applicative (login, utenti, note spese) sono ora servite sotto il prefisso `/api`, eliminando la collisione tra il proxy di Vite e le rotte SPA.
 - **Sicurezza login:** confronto password a tempo costante anche per email inesistenti (hash fittizio) e rate limit sui tentativi di accesso.
@@ -59,9 +59,6 @@ Apri http://localhost:5173 ed accedi con le credenziali dell'amministratore crea
 - `dipendente@azienda.it` (Dipendente, collaboratore del responsabile)
 
 Sono usati anche dal test end-to-end.
-
-### Non ancora implementato
-- **Pagamento ed esportazione:** le transizioni "Inviata al pagamento" e "Pagata" sono definite nella macchina a stati ma non ancora esposte come endpoint; l'esportazione CSV è prevista per la Slice 4.
 
 ## Funzionalità (Slice 3a — fondamenta rimborso chilometrico)
 
@@ -107,3 +104,40 @@ Sono usati anche dal test end-to-end.
 - Non ancora implementato: la **modifica** di una voce `MILEAGE` (PATCH) — per
   correggere una voce la si elimina e reinserisce; il calcolo della distanza
   reale (routing/geocoding), i viaggi multi-tappa e l'OCR restano fuori ambito.
+
+## Funzionalità (Slice 4 — pagamento ed esportazione)
+
+- **Coda pagamenti (Amministrazione).** La pagina **Pagamenti** elenca, tra tutti
+  i dipendenti, le note spese Approvate, Inviate al pagamento e Pagate. Da qui
+  l'Amministrazione **invia al pagamento** una nota approvata e poi la **segna
+  come pagata**, registrando la **data di pagamento** (preimpostata a oggi,
+  modificabile) e un **riferimento** facoltativo (es. numero del bonifico).
+- **Transizioni Finance.** `POST /api/reports/:id/send-payment`
+  (Approvata → Inviata al pagamento) e `POST /api/reports/:id/mark-paid`
+  (Inviata al pagamento → Pagata). Sono riservate ai ruoli Amministrazione e
+  Amministratore; le stesse azioni sono disponibili anche dalla pagina di
+  dettaglio della nota spese.
+- **Esportazione CSV per la contabilità.** Due esportazioni, entrambe riservate
+  all'Amministrazione e filtrabili per stato:
+  - `GET /api/reports/export/reports.csv` — una riga per nota spese (dipendente,
+    titolo, stato, totale, date, riferimento pagamento, numero di voci).
+  - `GET /api/reports/export/items.csv` — una riga per singola voce di spesa
+    (compresi i dettagli del rimborso chilometrico).
+  Il formato è pensato per Excel italiano: separatore `;`, virgola decimale,
+  prefisso BOM UTF-8, fine riga CRLF, intestazioni in italiano. Il download
+  avviene tramite un normale link `<a download>`, così il cookie di sessione
+  accompagna la richiesta.
+
+### Note per lo sviluppo (Slice 4)
+
+- Nessuna migration: le colonne `paidAt` e `paymentReference` su `ExpenseReport`
+  esistono già dalla Slice 2. Le transizioni `send-payment` e `mark-paid` erano
+  già definite in `@gsa/shared`; la Slice 4 le espone soltanto.
+- Costruttore CSV puro e testato in `packages/server/src/payment/csv.ts`
+  (importi in centesimi → stringa con virgola decimale, nessun simbolo €).
+- La coda pagamenti usa `GET /api/reports?scope=payments` (solo Amministrazione).
+- Il test end-to-end (`packages/web/e2e/payment.spec.ts`) copre il percorso
+  completo: invio → approvazione → invio al pagamento → pagamento con
+  riferimento → verifica del link di esportazione.
+- Utente di prova Amministrazione: `amministrazione@azienda.it`
+  (password `password123`), creato da `npm run seed:dev --workspace packages/server`.
