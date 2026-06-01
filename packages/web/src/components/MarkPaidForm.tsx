@@ -1,13 +1,12 @@
 import { useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
+import { Check } from "lucide-react";
 import type { MarkPaidInput } from "../api/client.js";
 
 function todayIso(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-// Small reusable form: a date (prefilled today) plus an optional payment
-// reference. Used by both the Pagamenti queue and the report detail page.
 export function MarkPaidForm({
   onSubmit,
 }: {
@@ -23,22 +22,35 @@ export function MarkPaidForm({
   }
 
   return (
-    <form onSubmit={handleSubmit} style={{ display: "inline-flex", gap: 8, alignItems: "center" }}>
-      <label>
-        {t("payments.paidAt")}{" "}
+    <form
+      onSubmit={handleSubmit}
+      style={{ display: "flex", gap: 10, alignItems: "flex-end", flexWrap: "wrap" }}
+    >
+      <label className="pg-field">
+        <span className="pg-label">{t("payments.paidAt")}</span>
         <input
+          className="pg-input"
           type="date"
           value={paidAt}
           onChange={(e) => setPaidAt(e.target.value)}
           required
+          style={{ width: 150 }}
         />
       </label>
-      <input
-        placeholder={t("payments.reference")}
-        value={reference}
-        onChange={(e) => setReference(e.target.value)}
-      />
-      <button type="submit">{t("payments.confirmPaid")}</button>
+      <label className="pg-field">
+        <span className="pg-label">{t("payments.reference")}</span>
+        <input
+          className="pg-input"
+          placeholder={t("payments.reference")}
+          value={reference}
+          onChange={(e) => setReference(e.target.value)}
+          style={{ width: 200 }}
+        />
+      </label>
+      <button type="submit" className="pg-btn pg-btn--gold">
+        <Check size={14} strokeWidth={2} />
+        {t("payments.confirmPaid")}
+      </button>
     </form>
   );
 }
