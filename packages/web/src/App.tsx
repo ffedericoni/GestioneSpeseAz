@@ -1,7 +1,7 @@
 import { Navigate, Route, Routes } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { AuthProvider, useAuth } from "./auth/AuthContext.js";
-import { NavBar } from "./components/NavBar.js";
+import { PageShell } from "./components/chrome.js";
 import { LoginPage } from "./pages/LoginPage.js";
 import { UsersPage } from "./pages/UsersPage.js";
 import { ReportsPage } from "./pages/ReportsPage.js";
@@ -17,8 +17,13 @@ function Routed(): JSX.Element {
   const { t } = useTranslation();
 
   if (loading) {
-    return <p style={{ fontFamily: "system-ui", margin: "2rem" }}>{t("common.loading")}</p>;
+    return (
+      <p className="pg" style={{ margin: "2rem" }}>
+        {t("common.loading")}
+      </p>
+    );
   }
+
   if (!user) {
     return (
       <Routes>
@@ -29,8 +34,7 @@ function Routed(): JSX.Element {
   }
 
   return (
-    <>
-      <NavBar />
+    <PageShell>
       <Routes>
         <Route path="/note-spese" element={<ReportsPage />} />
         <Route path="/note-spese/:id" element={<ReportDetailPage />} />
@@ -42,7 +46,7 @@ function Routed(): JSX.Element {
         <Route path="/impostazioni" element={<SettingsPage />} />
         <Route path="*" element={<Navigate to="/note-spese" replace />} />
       </Routes>
-    </>
+    </PageShell>
   );
 }
 
