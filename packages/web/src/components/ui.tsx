@@ -108,7 +108,7 @@ export function Avatar({
         fontSize: size * 0.4,
       }}
     >
-      {initials}
+      {initials || "?"}
     </div>
   );
 }
@@ -139,9 +139,10 @@ export function Switch({
         background: on ? "var(--pg-gold-deep)" : "var(--pg-sand-2)",
         border: "none",
         cursor: disabled ? "default" : "pointer",
+        opacity: disabled ? 0.5 : 1,
         position: "relative",
         display: "inline-block",
-        transition: "background 180ms",
+        transition: "background 180ms, opacity 180ms",
       }}
     >
       <span
