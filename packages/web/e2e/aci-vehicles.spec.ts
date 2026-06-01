@@ -1,6 +1,11 @@
 import { test, expect } from "@playwright/test";
 
 async function login(page: import("@playwright/test").Page, email: string) {
+  // Another spec running in parallel may have left an authenticated session in
+  // this browser context's cookies; "/" would then render the home page (the
+  // app has no "/login" route once authenticated) and the heading check below
+  // would time out. Clear any stale session first so we always reach the form.
+  await page.request.post("/api/logout");
   await page.goto("/");
   await expect(page.getByRole("heading", { name: "Accedi" })).toBeVisible();
   await page.getByLabel("Email").fill(email);
