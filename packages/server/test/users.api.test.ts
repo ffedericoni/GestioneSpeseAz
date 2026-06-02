@@ -41,7 +41,7 @@ describe("users API", () => {
   });
 
   it("admin lists, creates, and updates users", async () => {
-    await seedUser({
+    const admin = await seedUser({
       email: "admin@example.com",
       password: "password123",
       fullName: "Anna Admin",
@@ -54,6 +54,7 @@ describe("users API", () => {
       password: "password123",
       fullName: "Mario Rossi",
       role: "EMPLOYEE",
+      managerId: admin.id,
     });
     expect(created.status).toBe(201);
     expect(created.body.role).toBe("EMPLOYEE");

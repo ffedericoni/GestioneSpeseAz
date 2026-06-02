@@ -21,3 +21,6 @@ playwright-report/
 Thumbs.db
 .idea/
 .vscode/
+
+# Design handoff
+design_handoff_pellegrini/
