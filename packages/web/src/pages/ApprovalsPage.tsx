@@ -79,7 +79,7 @@ export function ApprovalsPage(): JSX.Element {
         eyebrow={t("reports.approvalsTitle")}
         title="Note spese"
         accent="da approvare"
-        sub={`${reports.length} in attesa`}
+        sub={`${visible.length} in attesa`}
         right={
           <Filter
             options={filterOptions}

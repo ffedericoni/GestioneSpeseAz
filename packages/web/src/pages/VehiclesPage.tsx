@@ -94,7 +94,7 @@ export function VehiclesPage(): JSX.Element {
               value={aciRateId}
               onChange={(e) => setAciRateId(e.target.value)}
               required
-              style={{ gridColumn: "1 / -1" } as React.CSSProperties}
+              style={{ gridColumn: "1 / -1" }}
             >
               {rates.length === 0 ? (
                 <option value="">{t("vehicles.noRate")}</option>

@@ -147,8 +147,13 @@ export function ReportDetailPage(): JSX.Element {
   }
 
   async function removeItem(itemId: string): Promise<void> {
-    await api.del(`/reports/${report!.id}/items/${itemId}`);
-    await refresh();
+    setError(null);
+    try {
+      await api.del(`/reports/${report!.id}/items/${itemId}`);
+      await refresh();
+    } catch {
+      setError(t("items.removeError"));
+    }
   }
 
   async function act(
