@@ -1,6 +1,6 @@
 {
   "name": "@gsa/web",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "scripts": {
@@ -23,10 +23,10 @@
     "@playwright/test": "^1.45.3",
     "@types/react": "^18.3.3",
     "@types/react-dom": "^18.3.0",
-    "@vitejs/plugin-react": "^4.3.1",
+    "@vitejs/plugin-react-swc": "^4.3.0",
     "jsdom": "^24.1.1",
     "typescript": "^5.5.3",
-    "vite": "^5.3.5",
-    "vitest": "^2.0.5"
+    "vite": "^6.4.2",
+    "vitest": "^4.1.8"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "gestione-spese-az",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.1.1",
   "workspaces": [
     "packages/shared",
     "packages/server",
@@ -14,5 +14,12 @@
   },
   "engines": {
     "node": ">=20"
+  },
+  "devDependencies": {
+    "vite": "^6.4.2"
+  },
+  "overrides": {
+    "fast-uri": "^3.1.2",
+    "esbuild": ">=0.25.0"
   }
 }
