@@ -83,9 +83,10 @@ export function ReportDetailPage(): JSX.Element {
     report.state === "READY_FOR_APPROVAL" ||
     report.state === "IN_REVISION";
   const available = actionsFor(report.state);
-  const canManage = available.some(
-    (a) => a === "approve" || a === "reject" || a === "revise"
-  );
+  const canManage =
+    !!user &&
+    hasAtLeast(user.role, "MANAGER") &&
+    available.some((a) => a === "approve" || a === "reject" || a === "revise");
   const isFinance = !!user && hasAtLeast(user.role, "FINANCE");
   const overBound = quote != null && Number(enteredKm) > quote.upperBoundKm;
 
