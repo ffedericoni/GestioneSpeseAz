@@ -39,6 +39,9 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
         });
       }
       if (req.query.scope === "approvals") {
+        if (!hasAtLeast(me.role, "MANAGER")) {
+          return reply.code(403).send({ error: "NON_AUTORIZZATO" });
+        }
         return prisma.expenseReport.findMany({
           where: {
             state: "READY_FOR_APPROVAL",

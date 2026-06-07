@@ -23,15 +23,12 @@ export async function buildTestApp(): Promise<FastifyInstance> {
 }
 
 export async function resetDb(): Promise<void> {
-  // Children before parents to satisfy foreign keys.
-  await prisma.reportEvent.deleteMany({});
-  await prisma.expenseItem.deleteMany({});
-  await prisma.expenseReport.deleteMany({});
-  await prisma.vehicle.deleteMany({});
-  await prisma.aciRate.deleteMany({});
-  await prisma.aciImportBatch.deleteMany({});
-  await prisma.setting.deleteMany({});
-  await prisma.user.deleteMany({});
+  // TRUNCATE ... CASCADE handles all FK constraints automatically regardless of
+  // insertion order, and is more robust than ordered deleteMany chains when the
+  // DB has accumulated state from previous test runs.
+  await prisma.$executeRawUnsafe(
+    `TRUNCATE TABLE "ReportEvent", "ExpenseItem", "ExpenseReport", "Vehicle", "AciRate", "AciImportBatch", "Setting", "User" CASCADE`,
+  );
 }
 
 export interface SeededUser {

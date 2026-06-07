@@ -181,6 +181,14 @@ describe("reports lifecycle", () => {
     expect(res.body.error).toBe("NOTA_SPESE_NON_MODIFICABILE");
   });
 
+  it("employee cannot access approvals scope (403)", async () => {
+    await seedOrg();
+    const emp = await loginAs("emp@example.com", "password123");
+    const res = await emp.get("/api/reports?scope=approvals");
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe("NON_AUTORIZZATO");
+  });
+
   it("manager approval queue lists only their reports awaiting approval", async () => {
     await seedOrg();
     const emp = await loginAs("emp@example.com", "password123");
