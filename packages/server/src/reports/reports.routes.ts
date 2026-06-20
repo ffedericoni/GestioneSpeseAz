@@ -188,19 +188,19 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
 
   app.post<{ Params: { id: string } }>(
     "/:id/approve",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("MANAGER") },
     (req, reply) => runTransition(req, reply, "approve"),
   );
 
   app.post<{ Params: { id: string } }>(
     "/:id/reject",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("MANAGER") },
     (req, reply) => runTransition(req, reply, "reject"),
   );
 
   app.post<{ Params: { id: string } }>(
     "/:id/revise",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("MANAGER") },
     (req, reply) => {
       const parsed = reviseSchema.safeParse(req.body);
       if (!parsed.success) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
@@ -210,13 +210,13 @@ export async function reportRoutes(app: FastifyInstance): Promise<void> {
 
   app.post<{ Params: { id: string } }>(
     "/:id/send-payment",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("FINANCE") },
     (req, reply) => runTransition(req, reply, "send-payment"),
   );
 
   app.post<{ Params: { id: string } }>(
     "/:id/mark-paid",
-    { preHandler: app.requireAuth },
+    { preHandler: app.requireRole("FINANCE") },
     (req, reply) => {
       const parsed = markPaidSchema.safeParse(req.body ?? {});
       if (!parsed.success) return reply.code(400).send({ error: "DATI_NON_VALIDI" });
