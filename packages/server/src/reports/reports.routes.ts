@@ -23,15 +23,22 @@ const reportSelect = {
 
 export async function reportRoutes(app: FastifyInstance): Promise<void> {
   // List. ?scope=approvals -> reports awaiting the caller as manager.
+  // ?scope=payments -> APPROVED/SENT_FOR_PAYMENT/PAID reports for FINANCE users.
+  // The paymentsGuard preHandler enforces FINANCE at the Fastify level when
+  // scope=payments is present, consistent with other privileged endpoints.
+  async function paymentsGuard(req: FastifyRequest<{ Querystring: { scope?: string } }>, reply: FastifyReply): Promise<void> {
+    if (req.query.scope === "payments") {
+      return app.requireRole("FINANCE")(req, reply);
+    }
+    return app.requireAuth(req, reply);
+  }
+
   app.get<{ Querystring: { scope?: string } }>(
     "/",
-    { preHandler: app.requireAuth },
+    { preHandler: paymentsGuard },
     async (req, reply) => {
       const me = req.currentUser!;
       if (req.query.scope === "payments") {
-        if (!hasAtLeast(me.role, "FINANCE")) {
-          return reply.code(403).send({ error: "NON_AUTORIZZATO" });
-        }
         return prisma.expenseReport.findMany({
           where: { state: { in: ["APPROVED", "SENT_FOR_PAYMENT", "PAID"] } },
           select: reportSelect,
