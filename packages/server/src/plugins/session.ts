@@ -34,10 +34,16 @@ async function sessionPluginImpl(app: FastifyInstance): Promise<void> {
     throw new Error("SESSION_SECRET must be set and at least 32 characters");
   }
 
+  const saltEnv = process.env.SESSION_SALT;
+  if (!saltEnv || Buffer.byteLength(saltEnv, "ascii") !== 16) {
+    throw new Error("SESSION_SALT must be set and exactly 16 ASCII characters");
+  }
+  const salt = Buffer.from(saltEnv, "ascii");
+
   await app.register(fastifyCookie);
   await app.register(fastifySecureSession, {
     secret,
-    salt: "gsa-session-salt",
+    salt,
     cookieName: "gsa_session",
     cookie: {
       path: "/",

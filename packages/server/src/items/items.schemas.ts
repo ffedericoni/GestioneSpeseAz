@@ -6,8 +6,8 @@ const moneyItemSchema = z.object({
   category: z.enum(MONEY_CATEGORIES as unknown as [MoneyCategory, ...MoneyCategory[]]),
   date: z.coerce.date(),
   description: z.string().min(1),
-  amountCents: z.number().int().nonnegative(),
-  vatCents: z.number().int().nonnegative().nullish(),
+  amountCents: z.number().int().min(0).max(100_000_000),
+  vatCents: z.number().int().min(0).max(100_000_000).nullish(),
   receiptRef: z.string().min(1).nullish(),
   notes: z.string().min(1).nullish(),
 });
@@ -22,8 +22,8 @@ const mileageItemSchema = z.object({
   originAddress: z.string().min(1),
   destinationAddress: z.string().min(1),
   roundTrip: z.boolean(),
-  manualKm: z.number().int().positive(),
-  enteredKm: z.number().int().positive(),
+  manualKm: z.number().int().min(1).max(10_000),
+  enteredKm: z.number().int().min(1).max(10_000),
   overageJustification: z.string().min(1).nullish(),
   notes: z.string().min(1).nullish(),
 });

@@ -6,6 +6,8 @@ import type { ReportState, Category } from "@gsa/shared";
 process.env.DATABASE_URL = process.env.TEST_DATABASE_URL ?? process.env.DATABASE_URL;
 process.env.SESSION_SECRET =
   process.env.SESSION_SECRET ?? "test-only-secret-please-change-me-32chars";
+process.env.SESSION_SALT =
+  process.env.SESSION_SALT ?? "test-sess-salt!!";
 // Keep the login rate limiter effectively disabled for the suite; a dedicated
 // test builds its own app with a low limit to verify 429 behaviour.
 process.env.LOGIN_RATE_MAX = process.env.LOGIN_RATE_MAX ?? "100000";
@@ -26,9 +28,7 @@ export async function resetDb(): Promise<void> {
   // TRUNCATE ... CASCADE handles all FK constraints automatically regardless of
   // insertion order, and is more robust than ordered deleteMany chains when the
   // DB has accumulated state from previous test runs.
-  await prisma.$executeRawUnsafe(
-    `TRUNCATE TABLE "ReportEvent", "ExpenseItem", "ExpenseReport", "Vehicle", "AciRate", "AciImportBatch", "Setting", "User" CASCADE`,
-  );
+  await prisma.$executeRaw`TRUNCATE TABLE "ReportEvent", "ExpenseItem", "ExpenseReport", "Vehicle", "AciRate", "AciImportBatch", "Setting", "User" CASCADE`;
 }
 
 export interface SeededUser {
